@@ -1,0 +1,19 @@
+name: MobileRobotAI
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.12
+  - pip
+  - gymnasium
+  - matplotlib
+  - numpy
+  - pytorch
+  - pytorch-cuda=12.1
+  - torchvision
+  - torchaudio
+  - pip:
+      - tqdm
