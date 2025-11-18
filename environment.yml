@@ -15,5 +15,6 @@ dependencies:
   - pytorch-cuda=12.1
   - torchvision
   - torchaudio
+  - pygame
   - pip:
       - tqdm
