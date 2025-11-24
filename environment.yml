@@ -4,7 +4,6 @@ channels:
   - nvidia
   - conda-forge
   - defaults
-
 dependencies:
   - python=3.12
   - pip
