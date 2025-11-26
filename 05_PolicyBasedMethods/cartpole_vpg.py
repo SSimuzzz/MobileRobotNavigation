@@ -12,7 +12,8 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-
+from datetime import datetime
+from tqdm import trange
 class PolicyEstimator():
     def __init__(self, n_observations, n_actions):
         self.num_observations = n_observations
@@ -28,34 +29,63 @@ class PolicyEstimator():
     def predict(self, observation):
         return self.network(torch.FloatTensor(observation))
 
-episode_durations = []
-
 
 def plot_durations(show_result=False):
-    plt.figure(1)
+    fig = plt.figure(1, figsize=(6, 4))
+    
+    # griglia 2 righe: sopra grafico, sotto tabella
+    gs = fig.add_gridspec(2, 1, height_ratios=[3, 1])
+    ax_plot = fig.add_subplot(gs[0])
+    ax_tab  = fig.add_subplot(gs[1])
+    
     durations_t = torch.tensor(episode_durations, dtype=torch.float)
+
     if show_result:
-        plt.title('Result')
+        ax_plot.set_title('Result')
     else:
-        plt.clf()
-        plt.title('Training...')
-    plt.xlabel('Episode')
-    plt.ylabel('Duration')
-    plt.plot(durations_t.numpy())
+        fig.clf()
+        ax_plot.set_title('Training...')
+    
+
+    ax_plot.set_xlabel('Episode')
+    ax_plot.set_ylabel('Duration')
+    ax_plot.plot(durations_t.numpy())
     # Take 100 episode averages and plot them too
     if len(durations_t) >= 100:
         means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
         means = torch.cat((torch.zeros(99), means))
-        plt.plot(means.numpy())
+        ax_plot.plot(means.numpy())
 
-    plt.pause(0.001)  # pause a bit so that plots are updated
+    # --- TABELLA PARAMETRI ---
+    ax_tab.axis('off')  # niente assi
+
+    table_data = [
+        ["BATCH_SIZE", BATCH_SIZE],
+        ["GAMMA", GAMMA],
+        ["LR", LR],
+        ["Training time (s)", training_time],
+        ["Max peak", max_peak],
+        ["Maximal Peak Episode", max_peak_episode],
+        ["Avg max peak", avg_max_peak],
+        ["Avg Maximal Peak Episode", avg_max_episode],
+    ]
+
+    ax_tab.table(
+        cellText=table_data,
+        loc="center",
+        cellLoc="center"
+    )
+
+    fig.tight_layout()
+
+    plt.pause(0.001)
+
     if is_ipython:
-        if not show_result:
-            display.display(plt.gcf())
-            display.clear_output(wait=True)
-        else:
-            display.display(plt.gcf())
+        display.clear_output(wait=True)
+        display.display(fig)
 
+
+episode_durations = []
 
 ### Main script ###
 env = gym.make("CartPole-v1")
@@ -110,8 +140,17 @@ else:
 total_rewards, batch_rewards, batch_observations, batch_actions = [], [], [], []
 batch_counter = 1
 
+t1 = datetime.now()
+training_time = 0
+max_peak = 0
+avg_max_peak = 0
+max_peak_episode = 0
+avg_max_episode = 0
 
-for i_episode in range(num_episodes):
+pbar = trange(num_episodes, desc="Training episodes")
+
+#for i_episode in range(num_episodes):
+for i_episode in pbar:
     # Initialize the environment and get its state
     rewards, actions, observations = [], [], []
     observation, info = env.reset()
@@ -129,7 +168,11 @@ for i_episode in range(num_episodes):
         done = terminated or truncated
 
         if done:
-            print(i_episode, t)
+            #print(i_episode, t)
+            #tqdm.write(f"Episode {i_episode}, steps: {t}")
+            if t > max_peak:
+                max_peak = t+1
+                max_peak_episode = i_episode
             # apply discount to rewards
             r = np.full(len(rewards), GAMMA) ** np.arange(len(rewards)) * np.array(rewards)
             r = r[::-1].cumsum()[::-1]
@@ -168,7 +211,17 @@ for i_episode in range(num_episodes):
             # get running average of last 100 rewards, print every 100 episodes
             average_reward = np.mean(total_rewards[-100:])
             if i_episode % 100 == 0:
-                print(f"average of last 100 rewards as of episode {i_episode}: {average_reward:.2f}")
+                #print(f"average of last 100 rewards as of episode {i_episode}: {average_reward:.2f}")
+                #tqdm.write(f"Average last 100 rewards at episode {i_episode}: {average_reward:.2f}")
+                if average_reward > avg_max_peak:
+                    avg_max_peak = average_reward
+                    avg_max_episode = i_episode
+
+            pbar.set_postfix(
+                episode=i_episode,
+                steps=t,
+                avg_reward=float(average_reward)
+            )
             #
             # # quit early if average_reward is high enough
             # if early_exit_reward_amount and average_reward > early_exit_reward_amount:
@@ -177,9 +230,12 @@ for i_episode in range(num_episodes):
             # break
 
             episode_durations.append(t + 1)
-            plot_durations()
+            #plot_durations()
             break
 
+t2 = datetime.now()
+training_time = t2 - t1
+training_time = int(training_time.total_seconds())
 print('Complete')
 plot_durations(show_result=True)
 plt.ioff()

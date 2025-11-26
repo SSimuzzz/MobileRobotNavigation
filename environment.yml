@@ -15,5 +15,8 @@ dependencies:
   - torchvision
   - torchaudio
   - pygame
+  - jupyter
+  - jupyterlab
+  - ipywidgets
   - pip:
       - tqdm
