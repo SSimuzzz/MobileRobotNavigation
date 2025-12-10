@@ -1,4 +1,4 @@
-run docker container
+docker run -it --rm -e DISPLAY=<YOUR IP>:0 ros_noetic:1 		--> run docker container
 roslaunch my_turtlebot3_openai_example start_training.launch		--> lancia l'ambiente gazebo con il robot che si muove dalla rete NN
 
 open another shell
