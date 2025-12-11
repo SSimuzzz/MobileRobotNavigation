@@ -10,9 +10,12 @@ look at start_deepqlearning.py
 turtlebot3_env.py
 another file 
 
-per cambiare i parametri bisogna modifciare il file /home/ubuntu/simulation_ws/src/my_turtlebot3_openai_example/config/my_turtlebot3_openai_deepqlearn_params.yaml
+per cambiare i parametri bisogna modifciare il file:
+/home/ubuntu/simulation_ws/src/my_turtlebot3_openai_example/config/my_turtlebot3_openai_deepqlearn_params.yaml
 
-per cambiare lo script bisogna modifciare il file /home/ubuntu/simulation_ws/src/my_turtlebot3_openai_example/scripts/start_deepqlearning.py
+per cambiare lo script bisogna modifciare il file:
+/home/ubuntu/simulation_ws/src/my_turtlebot3_openai_example/scripts/start_deepqlearning.py
 
-
-
+l'immagine con i risultati viene salvata in 
+/home/ubuntu/simulation_ws/src/my_turtlebot3_openai_example/training_results/
+e si chiama training_result.png
