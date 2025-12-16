@@ -1,0 +1,7 @@
+start_deepqlearning.py
+
+openai_ros:
+turtlebot3_world.py --> reward, crashing function (_is_done possibile modifica usando self.get_scan, quindi usando il lidar)
+turtlebot3_end --> conviente il collegamento con l'environment ros
+
+gazebo/model_states --> topic per la posizione

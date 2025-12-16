@@ -1,0 +1,7 @@
+Environment: arena turtlebot3 modificata
+Task: trovare percorso senza schiantarsi nel labirinto fino alla stellina/obiettivo (e tornare alla posizione di partenza?)
+Sensor input: lidar/laser --> idealmente 8 o più letture
+DRL Algorithm: ?
+Reward structure/Curriculum: Sparse reward --> Curriculum-based Reward + Intrinsic Motivation / Exploration Bonus
+Training stategy: provare diverse reti, batch size, exploration/exploitation parameters (decay rate, epsilon start, epsilon end) --> il decay dovrà essere molto alto (30000) per consentire una buona fase di esplorazione
+Evaluation metrics: navigare l'arena senza schiantarsi raggiungendo l'obiettivo finale (nel minor numero di step)
