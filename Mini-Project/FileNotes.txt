@@ -5,3 +5,15 @@ turtlebot3_world.py --> reward, crashing function (_is_done possibile modifica u
 turtlebot3_end --> conviente il collegamento con l'environment ros
 
 gazebo/model_states --> topic per la posizione
+
+
+
+Come viene creato l'ambiente:
+ - file start_deepqlearning.py chiama "StartOpenAI_ROS_Environment" prendendo l'argomento dal parametro "task_and_robot_environment_name" presente nel file "my_turtlebot3_openai_deepqlearn_params.yaml" (file caricato da start_training.launch), attualmente impostata a "TurtleBot3World-v0"
+ - la funzione "StartOpenAI_ROS_Environment" è implementata nel file "openai_ros_common.py"
+ - viene chiama la funzione "RegisterOpenAI_Ros_Env" (presente in task_envs_list.py) passando il nome dell'environment e il numero massimo di step
+ - all'interno della funzione troviamo la voce "TurtleBot3World-v0" e vediamo l'entry point: "openai_ros.task_envs.turtlebot3.turtlebot3_world:TurtleBot3WorldEnv", quindi l'ambiente gazebo viene lanciato da "turtlebot3_world.py" alla riga "ROSLauncher(rospackage_name="turtlebot3_gazebo",
+                    		launch_file_name="start_world.launch",
+                    		ros_ws_abspath=ros_ws_abspath)"
+ - All'interno del file "start_world.launch" vediamo che il mondo utilizzato è "turtlebot3.world"
+ - Alla riga "<uri>model://turtlebot3</uri>" del file "turtlebot3.world" è importato il modello turtlebot3 che contiene anche l'arena
