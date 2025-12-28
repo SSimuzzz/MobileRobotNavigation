@@ -351,11 +351,10 @@ if __name__ == '__main__':
                 rospy.logdebug("DONE")
                 last_time_steps = numpy.append(last_time_steps, [int(t + 1)])
 
-                if t <= 500:
-                    episode_durations.append(t + 1)
-                    if t > max_peak:
-                        max_peak = t+1
-                        max_peak_episode = i_episode
+                episode_durations.append(t + 1)
+                if t > max_peak:
+                    max_peak = t+1
+                    max_peak_episode = i_episode
                 break
             else:
                 rospy.logdebug("NOT DONE")

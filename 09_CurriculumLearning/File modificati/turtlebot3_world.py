@@ -145,6 +145,21 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         # Define the set of goal points (discrete goals) for goal sampling
         self.goal_threshold = rospy.get_param("/turtlebot3/goal_threshold", 0.25)
         self.max_steps_per_episode = rospy.get_param("/turtlebot3/max_steps_per_episode", 600)
+
+        
+        # Parametri di Ponderazione (Weights)
+        self.w_progress = rospy.get_param("/turtlebot3/progress_rwd", 40.0)
+        self.w_collision = rospy.get_param("/turtlebot3/collision_rwd", 2.0)
+        self.w_smooth = rospy.get_param("/turtlebot3/smooth_rwd", 0.15)
+
+        # Valori Terminali
+        self.terminal_goal = rospy.get_param("/turtlebot3/terminal_goal_rwd", 50.0)
+        self.terminal_crash = rospy.get_param("/turtlebot3/terminal_crash_rwd", -25.0)
+        self.terminal_timeout = rospy.get_param("/turtlebot3/terminal_timeout_rwd", -10.0)
+
+        # Penalità temporale costante per ogni step
+        self.r_time = rospy.get_param("/turtlebot3/time_rwd", -0.05)
+
         #self.easy_goals = [
         #    (-1.6, -0.5),   # +x
         #    (-2.4, -0.5),   # -x
@@ -436,7 +451,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         if self.prev_dist is None:
             self.prev_dist = dist
 
-        # --- 2. Parametri di Ponderazione (Weights) ---
+        """# --- 2. Parametri di Ponderazione (Weights) ---
         w_progress = 40.0      # Incentiva l'avvicinamento al goal
         w_collision = 2.0      # Penalità per la vicinanza agli ostacoli
         w_smooth = 0.15        # Penalità per rotazioni non necessarie
@@ -447,14 +462,14 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         terminal_timeout = -10.0
 
         # Penalità temporale costante per ogni step
-        r_time = -0.05 
+        r_time = -0.05 """
 
         # --- 3. Calcolo Componenti Fattorizzate ---
 
         # A. Progress Reward: basata sulla differenza di distanza (Reward Shaping)
         # Se diff > 0 il robot si è avvicinato, se < 0 si è allontanato
         diff = self.prev_dist - dist
-        r_progress = w_progress * diff
+        r_progress = self.w_progress * diff
 
         # B. Safety / Collision Avoidance
         # Calcoliamo la distanza minima dagli ostacoli (min_scan)
@@ -465,33 +480,36 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         threshold_safe = 0.3 # metri
         if min_scan < threshold_safe:
             # Penalità lineare: più è vicino, più la reward è negativa
-            r_collision_avoid = -w_collision * (threshold_safe - min_scan)
+            r_collision_avoid = -self.w_collision * (threshold_safe - min_scan)
         else:
-            r_collision_avoid = 0.1 * w_collision  # Piccola ricompensa per essere in zona sicura
+            r_collision_avoid = 0.1 * self.w_collision  # Piccola ricompensa per essere in zona sicura
 
         # C. Smooth Steering
         # Penalizziamo l'uso di azioni di rotazione (es. azioni 1 e 2) per favorire il moto rettilineo (azione 0)
         r_smooth = 0.0
-        if self.last_action != 0: 
-            r_smooth = -w_smooth
+        if self.last_action != "FORWARDS": 
+            r_smooth = -self.w_smooth
 
         # D. Terminal Rewards
         r_terminal = 0.0
         if done:
             if self.reached_goal:
-                r_terminal = terminal_goal
+                r_terminal = self.terminal_goal
             elif self.steps >= self.max_steps_per_episode:
-                r_terminal = terminal_timeout
+                r_terminal = self.terminal_timeout
             else:
                 # Se done è True ma non è goal o timeout, è una collisione
-                r_terminal = terminal_crash
+                r_terminal = self.terminal_crash
+
+        # E. Time Rewards
+        r_cumm_time = self.r_time * self.steps
 
         # --- 4. Calcolo Totale e Aggiornamento ---
-        reward = r_progress + r_time + r_smooth + r_collision_avoid + r_terminal
+        reward = r_progress + r_cumm_time  + r_smooth + r_collision_avoid + r_terminal
 
         # Aggiornamento dei cumulativi dell'episodio
         self.cum_r_progress += r_progress
-        self.cum_r_time += r_time
+        self.cum_r_time += self.r_time
         self.cum_r_smooth += r_smooth
         self.cum_r_collision_avoid += r_collision_avoid
         self.cum_r_terminal += r_terminal
@@ -503,7 +521,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         # --- 5. Struttura Logging Richiesta ---
         self.last_reward_components = {
             "r_progress": float(r_progress),
-            "r_time": float(r_time),
+            "r_time": float(self.r_time),
             "r_smooth": float(r_smooth),
             "r_collision_avoid": float(r_collision_avoid),
             "r_terminal": float(r_terminal),
