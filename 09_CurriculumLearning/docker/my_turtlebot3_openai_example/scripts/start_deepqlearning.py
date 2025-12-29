@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import gym
 import numpy
 import math
