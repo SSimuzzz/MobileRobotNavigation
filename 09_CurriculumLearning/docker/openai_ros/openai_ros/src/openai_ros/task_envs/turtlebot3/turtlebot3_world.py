@@ -444,48 +444,35 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         return self._episode_done
 
     def _compute_reward(self, observations, done):
-        # --- 1. Stato e Distanze ---
+        # --- 1. State and Distance ---
         x, y, _ = self._get_robot_pose()
         dist = self._distance_to_goal(x, y)
 
         if self.prev_dist is None:
             self.prev_dist = dist
 
-        """# --- 2. Parametri di Ponderazione (Weights) ---
-        w_progress = 40.0      # Incentiva l'avvicinamento al goal
-        w_collision = 2.0      # Penalità per la vicinanza agli ostacoli
-        w_smooth = 0.15        # Penalità per rotazioni non necessarie
+        # --- 2. Compute factorized components ---
 
-        # Valori Terminali
-        terminal_goal = 50.0
-        terminal_crash = -25.0
-        terminal_timeout = -10.0
-
-        # Penalità temporale costante per ogni step
-        r_time = -0.05 """
-
-        # --- 3. Calcolo Componenti Fattorizzate ---
-
-        # A. Progress Reward: basata sulla differenza di distanza (Reward Shaping)
-        # Se diff > 0 il robot si è avvicinato, se < 0 si è allontanato
+        # A. Progress Reward: based on distance difference (Reward Shaping)
+        # If diff > 0 the robot got closer, if < 0 it got farther
         diff = self.prev_dist - dist
         r_progress = self.w_progress * diff
 
         # B. Safety / Collision Avoidance
-        # Calcoliamo la distanza minima dagli ostacoli (min_scan)
+        # Compute min valid laser scan
         valid_scan = [o for o in observations if not numpy.isinf(o) and not numpy.isnan(o)]
         min_scan = min(valid_scan) if len(valid_scan) > 0 else 10.0
 
         r_collision_avoid = 0.0
-        threshold_safe = 0.3 # metri
+        threshold_safe = 0.3 # meters
         if min_scan < threshold_safe:
-            # Penalità lineare: più è vicino, più la reward è negativa
+            # Linear penalty: the closer it is, the more negative the reward
             r_collision_avoid = -self.w_collision * (threshold_safe - min_scan)
         else:
-            r_collision_avoid = 0.1 * self.w_collision  # Piccola ricompensa per essere in zona sicura
+            r_collision_avoid = 0.1 * self.w_collision  # Small reward for being in a safe zone
 
         # C. Smooth Steering
-        # Penalizziamo l'uso di azioni di rotazione (es. azioni 1 e 2) per favorire il moto rettilineo (azione 0)
+        # Penalize if last action was not FORWARDS
         r_smooth = 0.0
         if self.last_action != "FORWARDS": 
             r_smooth = -self.w_smooth
@@ -498,27 +485,27 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
             elif self.steps >= self.max_steps_per_episode:
                 r_terminal = self.terminal_timeout
             else:
-                # Se done è True ma non è goal o timeout, è una collisione
+                # If done is True but not goal or timeout, it's a collision
                 r_terminal = self.terminal_crash
 
         # E. Time Rewards
         r_cumm_time = self.r_time * self.steps
 
-        # --- 4. Calcolo Totale e Aggiornamento ---
+        # --- 4. Final computation and update ---
         reward = r_progress + r_cumm_time  + r_smooth + r_collision_avoid + r_terminal
 
-        # Aggiornamento dei cumulativi dell'episodio
+        # Update cumulative reward components
         self.cum_r_progress += r_progress
         self.cum_r_time += self.r_time
         self.cum_r_smooth += r_smooth
         self.cum_r_collision_avoid += r_collision_avoid
         self.cum_r_terminal += r_terminal
 
-        # Aggiornamento variabili di stato per lo step successivo
+        # Update state variables for next step
         self.prev_dist = dist
         self.prev_action = self.last_action
 
-        # --- 5. Struttura Logging Richiesta ---
+        # --- 5. Logging structure ---
         self.last_reward_components = {
             "r_progress": float(r_progress),
             "r_time": float(self.r_time),

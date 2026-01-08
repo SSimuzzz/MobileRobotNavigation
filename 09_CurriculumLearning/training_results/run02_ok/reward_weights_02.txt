@@ -1,0 +1,11 @@
+w_progress = 20.0       # Reduced from 40.0 to prevent rushing into walls
+w_collision = 10.0      # Increased from 2.0 to enforce obstacle avoidance
+w_action_change = 0.8   # Penalty for jitter (changing actions)
+w_sharp_turn_flip = 1.5 # Extra penalty for Left <-> Right swaps
+w_smooth = 0.1          # Base turn penalty
+
+# Terminal Values
+terminal_goal = 150.0   # Boosted to make goal completion the primary objective
+terminal_crash = -100.0 # Significantly increased to outweigh progress gains
+terminal_timeout = -10.0
+r_time = -0.05 
