@@ -17,3 +17,7 @@ Come viene creato l'ambiente:
                     		ros_ws_abspath=ros_ws_abspath)"
  - All'interno del file "start_world.launch" vediamo che il mondo utilizzato è "turtlebot3.world"
  - Alla riga "<uri>model://turtlebot3</uri>" del file "turtlebot3.world" è importato il modello turtlebot3 che contiene anche l'arena
+
+
+Realtime Update Rate
+Fare grafico delle funzioni dei reward per capire quanto contano i vari reward e per verificare non ci siano reward diversi di qualche ordine di grandezza
