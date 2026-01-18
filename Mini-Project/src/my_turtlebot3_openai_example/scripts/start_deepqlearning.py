@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import gym
 import numpy
 import math
@@ -11,6 +10,7 @@ from collections import namedtuple, deque
 from itertools import count
 from functools import reduce
 import os
+import csv
 
 import time
 from gym import wrappers
@@ -23,6 +23,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+
 
 
 class ReplayMemory(object):
@@ -206,6 +207,17 @@ if __name__ == '__main__':
     # env = wrappers.Monitor(env, outdir, force=True)
     rospy.loginfo("Monitor Wrapper started")
 
+    metrics_path = os.path.join(outdir, "metrics.csv")
+    metrics_f = open(metrics_path, "w", newline="")
+    metrics_writer = csv.writer(metrics_f)
+    metrics_writer.writerow([
+        "episode","reward","success","collision","steps",
+        "goal_x","goal_y","dist","min_scan",
+        "r_progress","r_time","r_smooth","r_collision_avoid","r_terminal",
+        "epsilon"
+    ])
+
+
     last_time_steps = numpy.ndarray(0)
 
     # Loads parameters from the ROS param server
@@ -233,7 +245,7 @@ if __name__ == '__main__':
 
     # Get number of actions from gym action space
     n_actions = env.action_space.n
-    n_observations = 5
+    n_observations = rospy.get_param("/turtlebot3/new_ranges") + 2
 
     # initialize networks with input and output sizes
     policy_net = DQN(n_observations, n_actions).to(device)
@@ -278,8 +290,44 @@ if __name__ == '__main__':
             rospy.logdebug("Next action is:%d", action)
 
             observation, reward, done, info = env.step(action.item())
+
+            last_info = info
+
+
+            cumulated_reward += float(reward)
+
+            if done:
+                print("\n=== EPISODE DONE ===")
+                print(f"success={info.get('success')} collision={info.get('collision')} steps={info.get('steps')}")
+                print(f"goal=({info.get('goal_x')}, {info.get('goal_y')}) dist={info.get('dist')} min_scan={info.get('min_scan')}")
+                print("cumulated_reward_terms:",
+                      {k: info.get(k) for k in ["cum_r_progress","cum_r_time","cum_r_smooth","cum_r_collision_avoid","cum_r_terminal"]})
+                print("Last step reward:", reward)
+                print("Cumulated reward:", cumulated_reward)
+                print("====================\n")
+
+                metrics_writer.writerow([
+                    i_episode+1,
+                    float(cumulated_reward),
+                    int(last_info.get("success", 0)),
+                    int(last_info.get("collision", 0)),
+                    int(last_info.get("steps", t+1)),
+                    last_info.get("goal_x",""),
+                    last_info.get("goal_y",""),
+                    last_info.get("dist",""),
+                    last_info.get("min_scan",""),
+                    last_info.get("cum_r_progress",""),
+                    last_info.get("cum_r_time",""),
+                    last_info.get("cum_r_smooth",""),
+                    last_info.get("cum_r_collision_avoid",""),
+                    last_info.get("cum_r_terminal",""),
+                    float(epsilon),
+                ])
+                metrics_f.flush()
+
+
+
             rospy.logdebug(str(observation) + " " + str(reward))
-            cumulated_reward += reward
             if highest_reward < cumulated_reward:
                 highest_reward = cumulated_reward
 
@@ -302,11 +350,10 @@ if __name__ == '__main__':
                 rospy.logdebug("DONE")
                 last_time_steps = numpy.append(last_time_steps, [int(t + 1)])
 
-                if t <= 500:
-                    episode_durations.append(t + 1)
-                    if t > max_peak:
-                        max_peak = t+1
-                        max_peak_episode = i_episode
+                episode_durations.append(t + 1)
+                if t > max_peak:
+                    max_peak = t+1
+                    max_peak_episode = i_episode
                 break
             else:
                 rospy.logdebug("NOT DONE")
@@ -322,6 +369,8 @@ if __name__ == '__main__':
         rospy.logerr(("EP: " + str(i_episode + 1) + " - gamma: " + str(
             round(gamma, 2)) + " - epsilon: " + str(round(epsilon, 2)) + "] - Reward: " + str(
             cumulated_reward) + "     Time: %d:%02d:%02d" % (h, m, s)))
+
+    metrics_f.close()
 
     rospy.loginfo(("\n|" + str(n_episodes) + "|" + str(gamma) + "|" + str(epsilon_start) + "*" +
                    str(epsilon_decay) + "|" + str(highest_reward) + "| PICTURE |"))

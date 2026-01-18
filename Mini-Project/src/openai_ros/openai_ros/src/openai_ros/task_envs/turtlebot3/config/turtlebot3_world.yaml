@@ -11,7 +11,7 @@ turtlebot3: #namespace
     init_linear_forward_speed: 0.0 # Initial linear speed in which we start each episode
     init_linear_turn_speed: 0.0 # Initial angular speed in shich we start each episode
     
-    new_ranges: 5 # How many laser readings we jump in each observation reading, the bigger the less laser resolution
+    new_ranges: 24 # How many laser readings we jump in each observation reading, the bigger the less laser resolution
     min_range: 0.2 # Minimum meters below wich we consider we have crashed
     max_laser_value: 6 # Value considered Ok, no wall
     min_laser_value: 0 # Value considered there is an obstacle or crashed
@@ -20,5 +20,21 @@ turtlebot3: #namespace
     forwards_reward: 5 # Points Given to go forwards
     turn_reward: 1 # Points Given to turn as action
     end_episode_points: 200 # Points given when ending an episode
-    
 
+    max_goal_distance: 10
+    easy_goal_thold: 0.75 #75%
+    
+    # New parameters for goal sampling
+    goal_threshold: 0.25 # Distance to goal to consider we have reached it
+    max_steps_per_episode: 600 # Maximum number of steps per episode
+
+    # Rewards
+    progress_rwd : 40       # Incentiva l'avvicinamento al goal
+    collision_rwd : 2.0     # Penalità per la vicinanza agli ostacoli
+    smooth_rwd : 0.15       # Penalità per rotazioni non necessarie
+            
+    terminal_goal_rwd: 50.0
+    terminal_crash_rwd: -25.0
+    terminal_timeout_rwd: -10.0
+
+    time_rwd : -0.05 # Penalità temporale costante per ogni step

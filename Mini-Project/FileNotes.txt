@@ -18,6 +18,10 @@ Come viene creato l'ambiente:
  - All'interno del file "start_world.launch" vediamo che il mondo utilizzato è "turtlebot3.world"
  - Alla riga "<uri>model://turtlebot3</uri>" del file "turtlebot3.world" è importato il modello turtlebot3 che contiene anche l'arena
 
+Spawn del mondo senza robot: 
+ 1. cd /home/ubuntu/simulation_ws/src/turtlebot3/turtlebot3_simulations/turtlebot3_gazebo
+ 2. roslaunch gazebo_ros empty_world.launch world_name:=$(pwd)/models/turtlebot3.world
+
 
 Realtime Update Rate
 Fare grafico delle funzioni dei reward per capire quanto contano i vari reward e per verificare non ci siano reward diversi di qualche ordine di grandezza
