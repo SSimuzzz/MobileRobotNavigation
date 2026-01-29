@@ -261,7 +261,7 @@ if __name__ == '__main__':
     else:
         optimizer = optim.RMSprop(policy_net.parameters(), lr=lr)
 
-    memory = ReplayMemory(500000)
+    memory = ReplayMemory(100000)
     episode_durations = []
     steps_done = 0
 
