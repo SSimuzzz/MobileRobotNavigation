@@ -46,10 +46,10 @@ class DQN(nn.Module):
 
     def __init__(self, inputs, outputs):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(inputs, 64)
-        self.fc2 = nn.Linear(64, 128)
-        self.fc3 = nn.Linear(128, 64)
-        self.head = nn.Linear(64, outputs)
+        self.fc1 = nn.Linear(inputs, 512)
+        self.fc2 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(256, 128)
+        self.head = nn.Linear(128, outputs)
 
     # Called with either one element to determine next action, or a batch
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
@@ -261,7 +261,7 @@ if __name__ == '__main__':
     else:
         optimizer = optim.RMSprop(policy_net.parameters(), lr=lr)
 
-    memory = ReplayMemory(10000)
+    memory = ReplayMemory(500000)
     episode_durations = []
     steps_done = 0
 

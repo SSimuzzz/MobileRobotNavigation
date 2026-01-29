@@ -171,7 +171,6 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         # Parametri di Ponderazione (Weights)
         self.w_progress = rospy.get_param("/turtlebot3/progress_rwd", 40.0)
         self.w_collision = rospy.get_param("/turtlebot3/collision_rwd", 2.0)
-        self.w_smooth = rospy.get_param("/turtlebot3/smooth_rwd", 0.15)
 
         # Valori Terminali
         self.terminal_goal = rospy.get_param("/turtlebot3/terminal_goal_rwd", 50.0)
@@ -181,67 +180,9 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         # Penalità temporale costante per ogni step
         self.r_time = rospy.get_param("/turtlebot3/time_rwd", -0.05)
 
-        #self.easy_goals = [
-        #    (-1.6, -0.5),   # +x
-        #    (-2.4, -0.5),   # -x
-        #    (-2.0, -0.1),   # +y
-        #    (-2.0, -0.9),   # -y
-        #
-        #    (-1.4, -0.5),
-        #    (-2.6, -0.5),
-        #    (-2.0,  0.1),
-        #    (-2.0, -1.1),
-        #
-        #    (-1.2, -0.5),
-        #    (-2.8, -0.5),
-        #    (-2.0,  0.3),
-        #    (-2.0, -1.3),
-        #]
-        #self.mid_goals = [
-        #    # cardinali
-        #    (-1.0, -0.5),
-        #    (-3.0, -0.5),
-        #    (-2.0,  0.5),
-        #    (-2.0, -1.5),
-        #
-        #    (-0.8, -0.5),
-        #    (-3.2, -0.5),
-        #    (-2.0,  0.7),
-        #    (-2.0, -1.7),
-        #
-        #    # diagonali moderate
-        #    (-1.3, -0.2),
-        #    (-1.3, -0.8),
-        #    (-2.7, -0.2),
-        #    (-2.7, -0.8),
-        #
-        #    (-1.1,  0.1),
-        #    (-1.1, -1.1),
-        #    (-2.9,  0.1),
-        #    (-2.9, -1.1),
-        #]
-        #self.hard_goals = [
-        #    # cardinali lontani
-        #    (-0.2, -0.5),
-        #    (-3.8, -0.5),
-        #    (-2.0,  1.5),
-        #    (-2.0, -2.5),
-        #
-        #    # diagonali lunghe
-        #    (-0.6,  0.3),
-        #    (-0.6, -1.3),
-        #    (-3.4,  0.3),
-        #    (-3.4, -1.3),
-        #
-        #    (-0.2,  0.9),
-        #    (-0.2, -1.9),
-        #    (-3.8,  0.9),
-        #    (-3.8, -1.9),
-        #]
-
-        self.easy_goals = [(-1.0, -0.5), (-1.5, 0.5), (-2.0, -1.5)]
-        self.mid_goals  = [(0.0, 0.0), (-0.5, -1.5), (0.5, 1.0)]
-        self.hard_goals = [(2.0, 2.0), (1.5, -2.0), (2.0, 0.0)]
+        self.easy_goals = [(-0.7, -0.5)]
+        self.mid_goals  = [(0.0, 0.5)]
+        self.hard_goals = [(1.0, -0.5), (1.7, 0.5)]
 
         self.discrete_goals = (
             self.easy_goals +
@@ -335,6 +276,8 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         # Set to false Done, because its calculated asyncronously
         self._episode_done = False
 
+        self.goal_angle = 0.0
+
         # Episode termination includes goal success + timeout
         self.steps = 0
         self.reached_goal = False
@@ -391,12 +334,13 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         discretized_observations = self.discretize_scan_observation(    laser_scan,
                                                                         self.new_ranges
                                                                         )
-        
+        self.scan_sub_callback(discretized_observations)
 
         # 2) Goal features (distance + heading error)
         x, y, yaw = self._get_robot_pose()
         dist = self._distance_to_goal(x, y)
         heading = self._heading_to_goal(x, y, yaw)
+        self.goal_angle = heading
 
         # (opzionale ma consigliato) normalizzazioni per stabilizzare l’apprendimento:
         # - dist: dividi per una distanza max plausibile del mondo
@@ -471,7 +415,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
 
         # --- 4) IMU crash detection (only if not already success/timeout) ---
         # You can still keep this even if episode already done, but it’s cleaner to avoid overrides.
-        if not self.reached_goal and (self.steps < self.max_steps_per_episode):
+        """if not self.reached_goal and (self.steps < self.max_steps_per_episode):
             imu_data = self.get_imu()
             lin_acc_mag = self.get_vector_magnitude(imu_data.linear_acceleration)
 
@@ -479,7 +423,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
                 self._episode_done = True
                 rospy.logwarn(
                     f"IMU crash detected: {lin_acc_mag:.3f} > {self.max_linear_aceleration:.3f}"
-                )
+                )"""
 
         # --- Mark collision cause (only if done but not success and not timeout) ---
         if self._episode_done and (not self.reached_goal) and (self.steps < self.max_steps_per_episode):
@@ -496,27 +440,51 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         rospy.logwarn(f"Achieved Goals: {self.curriculum.achieved_goals}")
 
         return self._episode_done
+    
+    def compute_directional_weights(self, relative_angles, max_weight=10.0):
+        power = 6
+        raw_weights = (numpy.cos(relative_angles))**power + 0.1
+        scaled_weights = raw_weights * (max_weight / numpy.max(raw_weights))
+        normalized_weights = scaled_weights / numpy.sum(scaled_weights)
+        return normalized_weights
+
+    def compute_weighted_obstacle_reward(self):
+        if not self.front_ranges or not self.front_angles:
+            return 0.0
+
+        front_ranges = numpy.array(self.front_ranges)
+        front_angles = numpy.array(self.front_angles)
+
+        valid_mask = front_ranges <= 0.5
+        if not numpy.any(valid_mask):
+            return 0.0
+
+        front_ranges = front_ranges[valid_mask]
+        front_angles = front_angles[valid_mask]
+
+        relative_angles = numpy.unwrap(front_angles)
+        relative_angles[relative_angles > numpy.pi] -= 2 * numpy.pi
+
+        weights = self.compute_directional_weights(relative_angles, max_weight=10.0)
+
+        safe_dists = numpy.clip(front_ranges - 0.25, 1e-2, 3.5)
+        decay = numpy.exp(-3.0 * safe_dists)
+
+        weighted_decay = numpy.dot(weights, decay)
+
+        reward = - (1.0 + 4.0 * weighted_decay)
+
+        return reward
 
     def _compute_reward(self, observations, done):
         # --- 1. Stato e Distanze ---
         x, y, _ = self._get_robot_pose()
         dist = self._distance_to_goal(x, y)
 
+        yaw_reward = 1 - (2 * abs(self.goal_angle) / math.pi)
+
         if self.prev_dist is None:
             self.prev_dist = dist
-
-        """# --- 2. Parametri di Ponderazione (Weights) ---
-        w_progress = 40.0      # Incentiva l'avvicinamento al goal
-        w_collision = 2.0      # Penalità per la vicinanza agli ostacoli
-        w_smooth = 0.15        # Penalità per rotazioni non necessarie
-
-        # Valori Terminali
-        terminal_goal = 50.0
-        terminal_crash = -25.0
-        terminal_timeout = -10.0
-
-        # Penalità temporale costante per ogni step
-        r_time = -0.05 """
 
         # --- 3. Calcolo Componenti Fattorizzate ---
 
@@ -534,19 +502,15 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         ]
         min_scan = min(valid_scan) if len(valid_scan) > 0 else 10.0
 
-        r_collision_avoid = 0.0
+        """r_collision_avoid = 0.0
         threshold_safe = 0.3 # metri
         if min_scan < threshold_safe:
             # Penalità lineare: più è vicino, più la reward è negativa
             r_collision_avoid = -self.w_collision * (threshold_safe - min_scan)
         else:
-            r_collision_avoid = 0.1 * self.w_collision  # Piccola ricompensa per essere in zona sicura
+            r_collision_avoid = 0.1 * self.w_collision  # Piccola ricompensa per essere in zona sicura"""
 
-        # C. Smooth Steering
-        # Penalizziamo l'uso di azioni di rotazione (es. azioni 1 e 2) per favorire il moto rettilineo (azione 0)
-        r_smooth = 0.0
-        if self.last_action != "FORWARDS": 
-            r_smooth = -self.w_smooth
+        r_collision_avoid = self.w_collision * self.compute_weighted_obstacle_reward()
 
         # D. Terminal Rewards
         r_terminal = 0.0
@@ -563,12 +527,11 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         r_cumm_time = self.r_time * self.steps
 
         # --- 4. Calcolo Totale e Aggiornamento ---
-        reward = r_progress + r_cumm_time  + r_smooth + r_collision_avoid + r_terminal
+        reward = r_progress + r_cumm_time + yaw_reward + r_collision_avoid + r_terminal
 
         # Aggiornamento dei cumulativi dell'episodio
         self.cum_r_progress += r_progress
         self.cum_r_time += self.r_time
-        self.cum_r_smooth += r_smooth
         self.cum_r_collision_avoid += r_collision_avoid
         self.cum_r_terminal += r_terminal
 
@@ -580,17 +543,18 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         self.last_reward_components = {
             "r_progress": float(r_progress),
             "r_time": float(self.r_time),
-            "r_smooth": float(r_smooth),
+            "r_smooth": 0,
             "r_collision_avoid": float(r_collision_avoid),
             "r_terminal": float(r_terminal),
             "dist": float(dist),
+            "yaw_reward": float(yaw_reward),
             "min_scan": float(min_scan),
             "goal_x": float(self.goal_xy[0]),
             "goal_y": float(self.goal_xy[1]),
             "r_total": float(reward),
             "cum_r_progress": self.cum_r_progress,
             "cum_r_time": self.cum_r_time,
-            "cum_r_smooth": self.cum_r_smooth,
+            "cum_r_smooth": 0,
             "cum_r_collision_avoid": self.cum_r_collision_avoid,
             "cum_r_terminal": self.cum_r_terminal,
             "cumulated_reward": self.cumulated_reward,
@@ -608,38 +572,6 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
 
 
         # Internal TaskEnv Methods
-
-        #def discretize_scan_observation(self,data,new_ranges):
-        """
-        #Discards all the laser readings that are not multiple in index of new_ranges
-        #value.
-        #"""
-        #self._episode_done = False
-
-        #discretized_ranges = []
-        #mod = len(data.ranges)/new_ranges
-
-        #rospy.logdebug("data=" + str(data))
-        #rospy.logdebug("new_ranges=" + str(new_ranges))
-        #rospy.logdebug("mod=" + str(mod))
-
-        #for i, item in enumerate(data.ranges):
-        #    if (i%mod==0):
-        #        if item == float ('Inf') or numpy.isinf(item):
-        #            discretized_ranges.append(self.max_laser_value)
-        #        elif numpy.isnan(item):
-        #            discretized_ranges.append(self.min_laser_value)
-        #        else:
-        #            discretized_ranges.append(item)
-
-        #        if (self.min_range > item > 0):
-        #            rospy.logerr("done Validation >>> item=" + str(item)+"< "+str(self.min_range))
-        #            self._episode_done = True
-        #        else:
-        #            rospy.logdebug("NOT done Validation >>> item=" + str(item)+"< "+str(self.min_range))
-
-
-        #return discretized_ranges
 
     def discretize_scan_observation(self, data, new_ranges):
         """
@@ -667,7 +599,34 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
             discretized_ranges.append(round(val, 2))
 
         return discretized_ranges
-        
+    
+    def scan_sub_callback(self, discretized_ranges):
+        #self.scan_ranges = []
+        self.front_ranges = []
+        self.front_angles = []
+
+        num_of_lidar_rays = len(discretized_ranges)
+        angle_increment = int(360/num_of_lidar_rays)
+
+        self.front_distance = discretized_ranges[0]
+
+        for i in range(num_of_lidar_rays):
+            angle = numpy.deg2rad(i * angle_increment)
+            distance = discretized_ranges[i]
+
+            if distance == float('Inf'):
+                distance = 3.5
+            elif numpy.isnan(distance):
+                distance = 0.0
+
+            #self.scan_ranges.append(distance)
+
+            if (0 <= angle <= math.pi/2) or (3*math.pi/2 <= angle <= 2*math.pi):
+                self.front_ranges.append(distance)
+                self.front_angles.append(angle)
+
+        #self.min_obstacle_distance = min(self.scan_ranges)
+        #self.front_min_obstacle_distance = min(self.front_ranges) if self.front_ranges else 10.0       
 
 
     def get_vector_magnitude(self, vector):

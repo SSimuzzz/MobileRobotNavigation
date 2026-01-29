@@ -9,14 +9,14 @@ turtlebot3: #namespace
     gamma: 0.999
     epsilon_start: 0.9
     epsilon_end: 0.05
-    epsilon_decay: 200
+    epsilon_decay: 6000
     n_episodes: 500
     target_update: 10
     batch_size: 128
-    lr: 1e-4
-    optimizer: "RMSprop"
+    lr: 5e-4
+    optimizer: "adam"
 
-    max_step: 510
+    max_step: 800
     running_step: 0.06 # Time for each step
 
     
