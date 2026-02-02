@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 # ==========================================================
 # CONFIGURAZIONE
 # ==========================================================
-RESULTS_DIR = "C:/Users/s.simonitti/Desktop/Nuova cartella/run5_like"
-
+#RESULTS_DIR = "../training_results" 
+RESULTS_DIR = "C:/Users/s.simonitti/Desktop/Nuova cartella/minipro"
 CSV_NAME = "metrics.csv"
 WINDOW = 50  # Finestra per medie mobili
 
@@ -118,7 +118,7 @@ def generate_plots():
     # ==========================================================
     # GRAFICO 4: REWARD COMPONENTS BREAKDOWN
     # ==========================================================
-    components = ['r_progress', 'r_time', 'r_smooth', 'r_collision_avoid', 'r_terminal']
+    components = ['r_progress', 'r_time', 'r_yaw', 'r_collision_avoid', 'r_terminal']
     available = [c for c in components if c in data[0]]
     
     if available:

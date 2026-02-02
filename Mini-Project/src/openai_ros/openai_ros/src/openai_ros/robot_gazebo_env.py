@@ -69,6 +69,9 @@ class RobotGazeboEnv(gym.Env):
 
         rospy.logdebug("END STEP OpenAIROS")
 
+        if hasattr(self, "_get_info"):
+            info = self._get_info(obs, done)
+
         return obs, reward, done, info
 
     def reset(self):
@@ -88,6 +91,16 @@ class RobotGazeboEnv(gym.Env):
         """
         rospy.logdebug("Closing RobotGazeboEnvironment")
         rospy.signal_shutdown("Closing RobotGazeboEnvironment")
+
+    def _get_info(self, obs, done):
+        d = dict(getattr(self, "last_reward_components", {}))
+        d.update({
+            "success": bool(self.reached_goal),
+            "collision": bool(self.collision),
+            "steps": int(self.steps),
+            "done": bool(done),
+        })
+        return d
 
     def _update_episode(self):
         """

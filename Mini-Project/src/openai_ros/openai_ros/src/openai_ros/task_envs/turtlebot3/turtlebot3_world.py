@@ -171,6 +171,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         # Parametri di Ponderazione (Weights)
         self.w_progress = rospy.get_param("/turtlebot3/progress_rwd", 40.0)
         self.w_collision = rospy.get_param("/turtlebot3/collision_rwd", 2.0)
+        self.w_yaw = rospy.get_param("/turtlebot3/yaw_rwd", 1.0)
 
         # Valori Terminali
         self.terminal_goal = rospy.get_param("/turtlebot3/terminal_goal_rwd", 50.0)
@@ -481,7 +482,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         x, y, _ = self._get_robot_pose()
         dist = self._distance_to_goal(x, y)
 
-        yaw_reward = 1 - (2 * abs(self.goal_angle) / math.pi)
+        yaw_reward = self.w_yaw * (1 - (2 * abs(self.goal_angle) / math.pi))
 
         if self.prev_dist is None:
             self.prev_dist = dist

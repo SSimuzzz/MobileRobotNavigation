@@ -213,7 +213,7 @@ if __name__ == '__main__':
     metrics_writer.writerow([
         "episode","reward","success","collision","steps",
         "goal_x","goal_y","dist","min_scan",
-        "r_progress","r_time","r_smooth","r_collision_avoid","r_yaw","r_terminal",
+        "r_progress","r_time","r_collision_avoid","r_yaw","r_terminal",
         "epsilon"
     ])
 
@@ -318,7 +318,6 @@ if __name__ == '__main__':
                     last_info.get("min_scan",""),
                     last_info.get("cum_r_progress",""),
                     last_info.get("cum_r_time",""),
-                    last_info.get("cum_r_smooth",""),
                     last_info.get("cum_r_collision_avoid",""),
                     last_info.get("yaw_reward",""),
                     last_info.get("cum_r_terminal",""),

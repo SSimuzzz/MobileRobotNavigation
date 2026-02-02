@@ -21,7 +21,7 @@ turtlebot3: #namespace
     turn_reward: 1 # Points Given to turn as action
     end_episode_points: 200 # Points given when ending an episode
 
-    max_goal_distance: 10
+    max_goal_distance: 20
     easy_goal_thold: 0.75 #75%
     
     # New parameters for goal sampling
@@ -31,6 +31,7 @@ turtlebot3: #namespace
     # Rewards
     progress_rwd : 40       # Incentiva l'avvicinamento al goal
     collision_rwd : 2.0     # Penalità per la vicinanza agli ostacoli
+    yaw_rwd : 1.0           # Incentivo per il direzionamento verso il goal
             
     terminal_goal_rwd: 50.0
     terminal_crash_rwd: -25.0
