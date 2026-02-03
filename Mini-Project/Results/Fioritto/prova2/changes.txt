@@ -1,0 +1,3 @@
+
+più peso a goal e yaw (80, 1, 10)
+aumentato leggermente decay (10000)

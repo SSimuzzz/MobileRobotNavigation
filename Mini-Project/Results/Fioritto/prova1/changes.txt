@@ -1,0 +1,3 @@
+aggiunto 1 goal facile di fronte al primo
+ridotto reward negativo terminal timeout (tanto non ci arriva comunque)
+alzato w collision e w yaw 

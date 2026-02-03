@@ -1,0 +1,9 @@
+PROVA 3
+pesi a 80, 1, 30
+aumentato ancora epsilon (30000)
+3000 episodi
+(qualcosa non va, da rifare, step veramente bassi)
+
+PROVA 4
+come prova 3 ma 1500 episodi invece di 3000
+(forse non aveva creato bene il docker)
