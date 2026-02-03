@@ -1,0 +1,3 @@
+Aumentato easy goal a 20 e medium goal a 40
+
+tolto il random choice nella seconda parte (dovrebbe puntare solo a medium goal dopo averne fatti 20 degli easy)

@@ -1,0 +1,4 @@
+soglia easy goal da 10 a 40
+soglia medium goal da 40 a 80
+
+aggiunto un punto in medium (X uguale al punto 2, Y uguale al punto 1)
