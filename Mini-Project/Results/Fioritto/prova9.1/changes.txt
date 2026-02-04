@@ -1,0 +1,15 @@
+risultati vagamente promettenti verso la fine
+
+configurazione esatta EPISODIO 9:
+
+-easy <30
+-easy/medium <55
+-progress reward 60
+-collision reward 2
+-yaw reward 20
+-terminal goal 50
+-terminal crash -50
+-epsilon decay 15000
+-1500 episodi
+
+Ho alzato leggermente yaw, il resto rimasto uguale ma vedo numeri decenti sugli step verso la fine

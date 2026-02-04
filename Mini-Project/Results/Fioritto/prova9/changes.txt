@@ -1,0 +1,7 @@
+PROVA 8
+rimesso 50% easy medium goal
+aumentato easy goal a 100 e secondo stage a 150
+yaw sempre 10. aumentato leggermente turn reward (2) ma non dovrebbe cambiare niente
+
+PROVA 9
+il training crasha appena arriva a 100 easy goals, ridotto easy a 60 e secondo stage a 120
