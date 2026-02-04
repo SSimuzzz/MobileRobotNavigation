@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # CONFIGURAZIONE
 # ==========================================================
 RESULTS_DIR = "../training_results" 
-#RESULTS_DIR = "C:/Users/s.simonitti/Desktop/Nuova cartella/minipro"
+#RESULTS_DIR = "C:/Users/s.simonitti/Desktop/MobileRobotNavigation/Mini-Project/Results/Samuele/06_yaw_rew"
 CSV_NAME = "metrics.csv"
 WINDOW = 50  # Finestra per medie mobili
 
