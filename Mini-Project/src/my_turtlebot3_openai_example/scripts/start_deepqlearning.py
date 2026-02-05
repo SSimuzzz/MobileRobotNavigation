@@ -372,6 +372,11 @@ if __name__ == '__main__':
 
     metrics_f.close()
 
+    target_net_path = os.path.join(outdir, "target_net.pth")
+    policy_net_path = os.path.join(outdir, "policy_net.pth")
+    torch.save(target_net.state_dict(), target_net_path)
+    torch.save(policy_net.state_dict(), policy_net_path)
+
     rospy.loginfo(("\n|" + str(n_episodes) + "|" + str(gamma) + "|" + str(epsilon_start) + "*" +
                    str(epsilon_decay) + "|" + str(highest_reward) + "| PICTURE |"))
 
