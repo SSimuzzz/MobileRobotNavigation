@@ -14,7 +14,7 @@ from tf.transformations import euler_from_quaternion
 
 
 class GoalSamplingCurriculum:
-    def __init__(self, all_goals, epsilon=0.2, achieved_maxlen=300, perf_window=20, easy_goal_thold=0.75):
+    def __init__(self, all_goals, epsilon=0.2, achieved_maxlen=10000, perf_window=20, easy_goal_thold=0.75):
         self.all_goals = list(all_goals)
         self.epsilon = float(epsilon)
         self.achieved_goals = deque(maxlen=achieved_maxlen)
