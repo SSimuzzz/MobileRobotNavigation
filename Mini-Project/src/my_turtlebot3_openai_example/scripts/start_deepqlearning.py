@@ -251,6 +251,20 @@ if __name__ == '__main__':
     policy_net = DQN(n_observations, n_actions).to(device)
     target_net = DQN(n_observations, n_actions).to(device)
     target_net.load_state_dict(policy_net.state_dict())
+
+    target_net_path = os.path.join(outdir, "target_net.pth")
+    policy_net_path = os.path.join(outdir, "policy_net.pth")
+
+    if os.path.exists(target_net_path):
+        target_net.load_state_dict(
+            torch.load(target_net_path, map_location=device)
+            )
+
+    if os.path.exists(policy_net_path):
+        policy_net.load_state_dict(
+            torch.load(policy_net_path, map_location=device)
+            )
+
     target_net.eval()
 
     optimizer_name = optimizer_name.lower()
@@ -372,8 +386,6 @@ if __name__ == '__main__':
 
     metrics_f.close()
 
-    target_net_path = os.path.join(outdir, "target_net.pth")
-    policy_net_path = os.path.join(outdir, "policy_net.pth")
     torch.save(target_net.state_dict(), target_net_path)
     torch.save(policy_net.state_dict(), policy_net_path)
 

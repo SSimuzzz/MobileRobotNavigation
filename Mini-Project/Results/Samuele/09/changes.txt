@@ -1,0 +1,3 @@
+Il test è diviso in due fasi:
+ 1. arena vuota con solo le mura dell'esagono
+ 2. arena con anche le mura
