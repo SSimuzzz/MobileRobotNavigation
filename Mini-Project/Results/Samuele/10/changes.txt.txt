@@ -1,0 +1,8 @@
+Il test è diviso in due fasi:
+ 1. arena vuota con solo le mura dell'esagono
+ 2. arena con anche le mura
+
+Per la prima fase sono stati inseriti i seguenti goal  
+self.easy_goals = [(-0.7, -0.5),(-1.1, -1.1),(-1.1, 0),(-1.1, 1.1)]
+self.mid_goals  = [(0.0, 0.5),(0, -1.1),(0, 0),(0, 1.1)]
+self.hard_goals = [(1.0, -0.5), (1.7, 0.5),(1.1, -1.1),(1.1, 0),(1.1, 1.1)]

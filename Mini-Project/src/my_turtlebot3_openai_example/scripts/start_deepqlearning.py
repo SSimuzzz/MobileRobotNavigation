@@ -257,13 +257,15 @@ if __name__ == '__main__':
 
     if os.path.exists(target_net_path):
         target_net.load_state_dict(
-            torch.load(target_net_path, map_location=device)
+            torch.load(target_net_path, map_location=device, weights_only=True)
             )
+        print("Target Net loaded")
 
     if os.path.exists(policy_net_path):
         policy_net.load_state_dict(
-            torch.load(policy_net_path, map_location=device)
+            torch.load(policy_net_path, map_location=device, weights_only=True)
             )
+        print("Policy Net Loaded")
 
     target_net.eval()
 
