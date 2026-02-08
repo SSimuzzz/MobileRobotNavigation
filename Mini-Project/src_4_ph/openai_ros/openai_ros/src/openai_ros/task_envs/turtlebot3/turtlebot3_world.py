@@ -279,7 +279,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
             self.goal_xy = self.mid_goals[0]
             self.goal_sample_mode = "fixed easy goal"
         elif self.training_phase == 3:
-            self.goal_xy = self.hard_goals[0]
+            self.goal_xy = self.mid_goals[0]
             self.goal_sample_mode = "fixed hard goal"
         else:
             self.goal_sample_mode = "curriculum smart"
