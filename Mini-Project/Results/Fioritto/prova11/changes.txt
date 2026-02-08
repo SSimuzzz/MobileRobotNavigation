@@ -1,0 +1,86 @@
+duelingDQN -----> dovrebbe essere migliore. 
+
+in start_dqnlearning.py cambiato la rete da DQN normale a questa:
+
+class DuelingDQN(nn.Module):
+    def __init__(self, inputs, outputs):
+        super().__init__()
+
+        # Shared feature extractor
+        self.feature = nn.Sequential(
+            nn.Linear(inputs, 512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+        )
+
+        # Value stream V(s)
+        self.value = nn.Sequential(
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1)
+        )
+
+        # Advantage stream A(s,a)
+        self.advantage = nn.Sequential(
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, outputs)
+        )
+
+    def forward(self, x):
+    x = x.to(device)
+
+    if x.dim() == 1:
+        x = x.unsqueeze(0)
+
+    features = self.feature(x)
+
+    v = self.value(features)        # [B, 1]
+    a = self.advantage(features)    # [B, A]
+
+    q = v + a - a.mean(dim=1, keepdim=True)
+    return q
+
+---------------------------------------------------------------
+
+modificato queste due righe da DQN a DuelingDQN
+
+policy_net = DuelingDQN(n_observations, n_actions).to(device)
+target_net = DuelingDQN(n_observations, n_actions).to(device)
+
+-------------------------------------------------------------
+
+modificato da policy_net(state).max(0)[1]
+
+policy_net(state.unsqueeze(0)).max(1)[1]
+
+-----------------------------------------------------------
+
+aggiunto prima di memory.push(state, action, next_state, reward)
+
+#se non metto next_state None rischio che si sballino i valori terminali
+            if done:
+                next_state = None
+            else:
+                next_state = torch.tensor(observation, device=device, dtype=torch.float)
+
+gamma: 0.97
+epsilon_decay: 8000
+n_episodes: 2500    
+batch_size: 32
+lr: 1e-4
+    
+progress_rwd : 40     
+    collision_rwd : 1.0     
+    yaw_rwd : 5.0                      
+    terminal_goal_rwd: 300.0
+    terminal_crash_rwd: -300.0
+    terminal_timeout_rwd: -100.0
+
+
+easy a 50
+easy medium a 100 (55%)
+
