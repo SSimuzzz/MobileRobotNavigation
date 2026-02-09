@@ -61,8 +61,13 @@ class DQN(nn.Module):
         return self.head(x)
 
 
-def select_action(state, eps_start, eps_end, eps_decay):
+def select_action(state, eps_start, eps_end, eps_decay, is_test=False):
     global steps_done
+
+    if is_test:
+        with torch.no_grad():
+            return policy_net(state).argmax().view(1,1), 0.0
+
     sample = random.random()
     eps_threshold = eps_end + (eps_start - eps_end) * \
         math.exp(-1. * steps_done / eps_decay)
@@ -247,6 +252,9 @@ if __name__ == '__main__':
     n_actions = env.action_space.n
     n_observations = rospy.get_param("/turtlebot3/new_ranges") + 2
 
+    mode = rospy.get_param("/turtlebot3/mode")
+    is_test = (mode == "test")
+
     # initialize networks with input and output sizes
     policy_net = DQN(n_observations, n_actions).to(device)
     target_net = DQN(n_observations, n_actions).to(device)
@@ -268,6 +276,10 @@ if __name__ == '__main__':
         print("Policy Net Loaded")
 
     target_net.eval()
+    if is_test:
+        policy_net.eval()
+    else:
+        policy_net.train()
 
     optimizer_name = optimizer_name.lower()
     if optimizer_name == "adamw":
@@ -353,7 +365,8 @@ if __name__ == '__main__':
             next_state = torch.tensor(observation, device=device, dtype=torch.float)
 
             # Store the transition in memory
-            memory.push(state, action, next_state, reward)
+            if not is_test:
+                memory.push(state, action, next_state, reward)
 
             # Perform one step of the optimization (on the policy network)
             rospy.logdebug("# state we were=>" + str(state))
@@ -361,7 +374,8 @@ if __name__ == '__main__':
             rospy.logdebug("# reward that action gave=>" + str(reward))
             rospy.logdebug("# episode cumulated_reward=>" + str(cumulated_reward))
             rospy.logdebug("# State in which we will start next step=>" + str(next_state))
-            optimize_model(batch_size, gamma)
+            if not is_test:
+                optimize_model(batch_size, gamma)
             if done:
                 rospy.logdebug("DONE")
                 last_time_steps = numpy.append(last_time_steps, [int(t + 1)])
@@ -377,7 +391,7 @@ if __name__ == '__main__':
 
             rospy.logwarn("############### END Step=>" + str(t))
             # Update the target network, copying all weights and biases in DQN
-        if i_episode % target_update == 0:
+        if not is_test and i_episode % target_update == 0:
             target_net.load_state_dict(policy_net.state_dict())
 
         m, s = divmod(int(time.time() - start_time), 60)
@@ -388,8 +402,9 @@ if __name__ == '__main__':
 
     metrics_f.close()
 
-    torch.save(target_net.state_dict(), target_net_path)
-    torch.save(policy_net.state_dict(), policy_net_path)
+    if not is_test:
+        torch.save(target_net.state_dict(), target_net_path)
+        torch.save(policy_net.state_dict(), policy_net_path)
 
     rospy.loginfo(("\n|" + str(n_episodes) + "|" + str(gamma) + "|" + str(epsilon_start) + "*" +
                    str(epsilon_decay) + "|" + str(highest_reward) + "| PICTURE |"))
