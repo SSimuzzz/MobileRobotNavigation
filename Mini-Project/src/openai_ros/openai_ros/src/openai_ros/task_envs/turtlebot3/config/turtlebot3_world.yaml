@@ -21,7 +21,7 @@ turtlebot3: #namespace
     turn_reward: 1 # Points Given to turn as action
     end_episode_points: 200 # Points given when ending an episode
 
-    max_goal_distance: 20
+    max_goal_distance: 4.0
     easy_goal_thold: 0.75 #75%
     
     # New parameters for goal sampling
