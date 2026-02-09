@@ -61,7 +61,49 @@ class DQN(nn.Module):
         return self.head(x)
 
 
-def select_action(state, eps_start, eps_end, eps_decay, is_test=False):
+class DuelingDQN(nn.Module):
+    def __init__(self, inputs, outputs):
+        super().__init__()
+
+        # Shared feature extractor
+        self.feature = nn.Sequential(
+            nn.Linear(inputs, 512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+        )
+
+        # Value stream V(s)
+        self.value = nn.Sequential(
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1)
+        )
+
+        # Advantage stream A(s,a)
+        self.advantage = nn.Sequential(
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, outputs)
+        )
+
+    def forward(self, x):
+        x = x.to(device)
+
+        if x.dim() == 1:
+            x = x.unsqueeze(0)
+    
+        features = self.feature(x)
+    
+        v = self.value(features)        # [B, 1]
+        a = self.advantage(features)    # [B, A]
+    
+        q = v + a - a.mean(dim=1, keepdim=True)
+        return q
+
+def select_action(state, eps_start, eps_end, eps_decay, use_duelingDQN=False, is_test=False):
     global steps_done
 
     if is_test:
@@ -77,7 +119,10 @@ def select_action(state, eps_start, eps_end, eps_decay, is_test=False):
             # t.max(1) will return largest column value of each row.
             # second column on max result is index of where max element was
             # found, so we pick action with the larger expected reward.
-            return policy_net(state).max(0)[1].view(1, 1), eps_threshold
+            if use_duelingDQN == 1:
+                return policy_net(state.unsqueeze(0)).max(1)[1].view(1, 1), eps_threshold
+            else:
+                return policy_net(state).max(0)[1].view(1, 1), eps_threshold
     else:
         return torch.tensor([[random.randrange(n_actions)]], device=device, dtype=torch.long), eps_threshold
 
@@ -255,9 +300,16 @@ if __name__ == '__main__':
     mode = rospy.get_param("/turtlebot3/mode")
     is_test = (mode == "test")
 
-    # initialize networks with input and output sizes
-    policy_net = DQN(n_observations, n_actions).to(device)
-    target_net = DQN(n_observations, n_actions).to(device)
+    use_duelingDQN = rospy.get_param("/turtlebot3/use_duelingDQN", 0)
+
+    # initialize networks with input and output sizes    
+    if use_duelingDQN == 1:
+        policy_net = DuelingDQN(n_observations, n_actions).to(device)
+        target_net = DuelingDQN(n_observations, n_actions).to(device)
+    else:
+        policy_net = DQN(n_observations, n_actions).to(device)
+        target_net = DQN(n_observations, n_actions).to(device)
+
     target_net.load_state_dict(policy_net.state_dict())
 
     target_net_path = os.path.join(outdir, "target_net.pth")
@@ -314,7 +366,7 @@ if __name__ == '__main__':
         for t in range(max_step):
             rospy.logwarn("############### Start Step=>" + str(t))
             # Select and perform an action
-            action, epsilon = select_action(state, epsilon_start, epsilon_end, epsilon_decay)
+            action, epsilon = select_action(state, epsilon_start, epsilon_end, epsilon_decay, use_duelingDQN, is_test)
             rospy.logdebug("Next action is:%d", action)
 
             observation, reward, done, info = env.step(action.item())
@@ -366,6 +418,9 @@ if __name__ == '__main__':
 
             # Store the transition in memory
             if not is_test:
+                if use_duelingDQN == 1:
+                    if done:
+                        next_state = None
                 memory.push(state, action, next_state, reward)
 
             # Perform one step of the optimization (on the policy network)

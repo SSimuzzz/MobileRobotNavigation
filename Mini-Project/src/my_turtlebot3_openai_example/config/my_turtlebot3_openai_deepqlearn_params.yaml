@@ -19,5 +19,8 @@ turtlebot3: #namespace
     max_step: 800
     running_step: 0.06 # Time for each step
 
+
+    use_duelingDQN: 0
+
     
 
