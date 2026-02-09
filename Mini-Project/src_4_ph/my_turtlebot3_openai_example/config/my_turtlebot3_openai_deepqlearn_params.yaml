@@ -18,6 +18,8 @@ turtlebot3: #namespace
     max_step: 800
     running_step: 0.06 # Time for each step
 
+    use_duelingDQN: 0
+
     # PHASE 1
     epsilon_end: 0.2
     learning_starts: 4000
@@ -39,5 +41,5 @@ turtlebot3: #namespace
     # PHASE 4
     #epsilon_end: 0.25
     #learning_starts: 1500
-    #n_episodes: 2000
+    #n_episodes: 4000
     #epsilon_decay: 10000

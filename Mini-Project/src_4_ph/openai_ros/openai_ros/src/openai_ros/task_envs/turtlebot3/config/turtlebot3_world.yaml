@@ -32,11 +32,11 @@ turtlebot3: #namespace
     yaw_rwd_ph1 : 0.1
     yaw_rwd_ph2 : 0.05
     yaw_rwd_ph3 : 0.02
-    yaw_rwd_ph4 : 0.0
+    yaw_rwd_ph4 : 0.01
             
-    terminal_goal_rwd: 1.0
-    terminal_crash_rwd: -1.0
-    terminal_timeout_rwd: -0.25
+    terminal_goal_rwd: 2.0
+    terminal_crash_rwd: -2.0
+    terminal_timeout_rwd: -0.5
 
     time_rwd : -0.01 # Penalità temporale costante per ogni step
 
