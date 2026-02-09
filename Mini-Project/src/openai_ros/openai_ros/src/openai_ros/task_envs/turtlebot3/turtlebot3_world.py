@@ -126,6 +126,9 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         self.min_laser_value = rospy.get_param('/turtlebot3/min_laser_value')
         self.max_linear_aceleration = rospy.get_param('/turtlebot3/max_linear_aceleration')
 
+        mode = rospy.get_param('/turtlebot3/mode', "train")
+        self.is_test = (mode == "test")
+
 
         # We create two arrays based on the binary values that will be assigned
         # In the discretization method.
@@ -183,12 +186,14 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
 
         self.easy_goals = [(-0.7, -0.5)]
         self.mid_goals  = [(0.0, 0.5)]
-        self.hard_goals = [(1.0, -0.5), (1.7, 0.5)]
+        self.hard_goals = [(1.0, -0.5)]
+        self.final_goal = [(1.7, 0.5)]
 
         self.discrete_goals = (
             self.easy_goals +
             self.mid_goals +
-            self.hard_goals
+            self.hard_goals + 
+            self.final_goal
         )
 
         self.goal_xy = self.discrete_goals[0]  # Initialize goal
@@ -234,28 +239,31 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
     # Calcola il success rate globale o recente (es. ultimi 50 ep)
     # Nota: Questo richiede di salvare lo storico successi fuori da GoalSamplingCurriculum o interrogarlo meglio.
     # Assumiamo di poter accedere a self.curriculum.achieved_goals
-
-        total_achieved = len(self.curriculum.achieved_goals)
-
-        # Logica a Fasi (Stages)
-        # Stage 1: Solo easy goals finché non ne padroneggiamo un po'
-        if total_achieved < 15: 
-            self.goal_xy = random.choice(self.easy_goals)
-            self.goal_sample_mode = "easy_training"
-
-        # Stage 2: Mischia Easy e Mid
-        elif total_achieved < 40:
-            if random.random() < 0.5:
-                self.goal_xy = random.choice(self.easy_goals)
-            else:
-                self.goal_xy = random.choice(self.mid_goals)
-            self.goal_sample_mode = "mid_training"
-
-        # Stage 3: Curriculum completo (usa la tua classe intelligente)
+        if self.is_test:
+            self.goal_sample_mode = "testing"
+            self.goal_xy = self.final_goal[0]
         else:
-            # Usa la logica intelligente definita nella classe GoalSamplingCurriculum
-            self.goal_xy = self.curriculum.sample_goal(ref_xy=self._get_robot_pose()[:2])
-            self.goal_sample_mode = "curriculum_smart"
+            total_achieved = len(self.curriculum.achieved_goals)
+
+            # Logica a Fasi (Stages)
+            # Stage 1: Solo easy goals finché non ne padroneggiamo un po'
+            if total_achieved < 15: 
+                self.goal_xy = random.choice(self.easy_goals)
+                self.goal_sample_mode = "easy_training"
+
+            # Stage 2: Mischia Easy e Mid
+            elif total_achieved < 40:
+                if random.random() < 0.5:
+                    self.goal_xy = random.choice(self.easy_goals)
+                else:
+                    self.goal_xy = random.choice(self.mid_goals)
+                self.goal_sample_mode = "mid_training"
+
+            # Stage 3: Curriculum completo (usa la tua classe intelligente)
+            else:
+                # Usa la logica intelligente definita nella classe GoalSamplingCurriculum
+                self.goal_xy = self.curriculum.sample_goal(ref_xy=self._get_robot_pose()[:2])
+                self.goal_sample_mode = "curriculum_smart"
 
 
     def _init_env_variables(self):

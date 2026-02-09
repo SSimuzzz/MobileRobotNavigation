@@ -38,3 +38,6 @@ turtlebot3: #namespace
     terminal_timeout_rwd: -10.0
 
     time_rwd : -0.05 # Penalità temporale costante per ogni step
+
+    # Training/Testing Phase
+    mode: "train" # "train" o "test"
