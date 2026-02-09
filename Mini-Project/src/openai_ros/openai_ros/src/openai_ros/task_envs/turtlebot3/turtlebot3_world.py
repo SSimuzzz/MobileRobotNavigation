@@ -79,14 +79,29 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
                                                " DOESNT exist, execute: mkdir -p " + ros_ws_abspath + \
                                                "/src;cd " + ros_ws_abspath + ";catkin_make"
 
-        ROSLauncher(rospackage_name="turtlebot3_gazebo",
-                    launch_file_name="start_world.launch",
-                    ros_ws_abspath=ros_ws_abspath)
-
         # Load Params from the desired Yaml file
         LoadYamlFileParamsTest(rospackage_name="openai_ros",
                                rel_path_from_package_to_file="src/openai_ros/task_envs/turtlebot3/config",
                                yaml_file_name="turtlebot3_world.yaml")
+
+        mode = rospy.get_param('/turtlebot3/mode', "train")
+        self.is_test = (mode == "test")
+
+        launch_file = "start_world.launch"
+
+        if self.is_test:
+            test_maze = rospy.get_param('/turtlebot3/test_maze', "standard")
+            if test_maze == "opposite":
+                launch_file = "start_world_opposite.launch"
+            elif test_maze == "hard":
+                launch_file = "start_world_hard.launch"
+            else:
+                launch_file = "start_world.launch"
+
+        ROSLauncher(rospackage_name="turtlebot3_gazebo",
+                    launch_file_name=launch_file,
+                    ros_ws_abspath=ros_ws_abspath)
+
 
 
         # Here we will add any init functions prior to starting the MyRobotEnv
@@ -125,9 +140,6 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         self.max_laser_value = rospy.get_param('/turtlebot3/max_laser_value')
         self.min_laser_value = rospy.get_param('/turtlebot3/min_laser_value')
         self.max_linear_aceleration = rospy.get_param('/turtlebot3/max_linear_aceleration')
-
-        mode = rospy.get_param('/turtlebot3/mode', "train")
-        self.is_test = (mode == "test")
 
 
         # We create two arrays based on the binary values that will be assigned
