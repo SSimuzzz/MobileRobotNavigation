@@ -9,15 +9,16 @@ from openai_ros.openai_ros_common import ROSLauncher
 import os
 import math
 import random
-from collections import deque, defaultdict
+from collections import deque, defaultdict, Counter
 from tf.transformations import euler_from_quaternion
 
 
 class GoalSamplingCurriculum:
-    def __init__(self, all_goals, epsilon=0.2, achieved_maxlen=10000, perf_window=20, easy_goal_thold=0.75):
+    def __init__(self, all_goals, final_goal, epsilon=0.2, achieved_maxlen=10000, perf_window=20, easy_goal_thold=0.75):
         self.all_goals = list(all_goals)
         self.epsilon = float(epsilon)
         self.achieved_goals = deque(maxlen=achieved_maxlen)
+        self.final_goal = final_goal
         self.perf_window = int(perf_window)
         self.easy_goal_thold = float(easy_goal_thold)
         self.goal_perf = defaultdict(lambda: deque(maxlen=self.perf_window)) # (success, steps)
@@ -64,9 +65,20 @@ class GoalSamplingCurriculum:
         return random.choices(candidates, weights=scores, k=1)[0]"""
 
     def sample_goal(self, ref_xy):
-        if random.random() < self.epsilon or len(self.achieved_goals) == 0:
+        max_per_goal = 100
+
+        if len(self.achieved_goals) > len(set(self.achieved_goals)) * max_per_goal:
+            return self.final_goal
+
+        counter = Counter(self.achieved_goals)
+
+        valid_goals = [goal for goal, count in counter.items() if count <= max_per_goal]
+
+
+        if random.random() < self.epsilon or not valid_goals:
             return random.choice(self.all_goals)
-        return random.choice(list(set(self.achieved_goals)))
+        
+        return random.choice(list(set(self.valid_goals)))
 
 
 class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
@@ -147,7 +159,8 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         # ---- Extra observation bounds: distance (raw) + heading normalized ----
         # distance in meters: [0, max_goal_distance]
         self.max_goal_distance = rospy.get_param("/turtlebot3/max_goal_distance", 10.0)
-        self.progress_clip = rospy.get_param("/turtlebot3/progress_clip", 0.05)
+        self.progress_clip = rospy.get_param("/turtlebot3/progress_clip", 10.0)
+        self.collision_clip = rospy.get_param("/turtlebot3/collision_clip", 10.0)
 
         # Aggiungo 2 feature: dist_norm in [0, 1] (se dividi per 10 e clampi) e heading_norm in [-1, 1]
         low_extra = numpy.array([0.0, -1.0], dtype=numpy.float32)
@@ -178,6 +191,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         self.w_collision_ph2 = rospy.get_param("/turtlebot3/collision_rwd_ph2", 2.0)
         self.w_collision_ph3 = rospy.get_param("/turtlebot3/collision_rwd_ph3", 2.0)
         self.w_collision_ph4 = rospy.get_param("/turtlebot3/collision_rwd_ph4", 2.0)
+        self.w_collision_ph4 = rospy.get_param("/turtlebot3/collision_rwd_ph4", 2.0)
         
         self.w_yaw_ph1 = rospy.get_param("/turtlebot3/yaw_rwd_ph1", 1.0)
         self.w_yaw_ph2 = rospy.get_param("/turtlebot3/yaw_rwd_ph2", 1.0)
@@ -194,15 +208,17 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
 
         self.easy_goals = [(-0.7, -0.5)]
         self.mid_goals  = [(0.0, 0.5)]
-        self.hard_goals = [(1.0, -0.5), (1.7, 0.5)]
+        self.hard_goals = [(1.0, -0.5)]
+        self.final_goal = [(1.7, 0.5)]
 
         self.discrete_goals = (
             self.easy_goals +
             self.mid_goals +
-            self.hard_goals
+            self.hard_goals +
+            self.final_goal
         )
 
-        self.curriculum = GoalSamplingCurriculum(all_goals=self.discrete_goals, epsilon=0.2, easy_goal_thold=easy_goal_thold)
+        self.curriculum = GoalSamplingCurriculum(all_goals=self.discrete_goals, final_goal = self.final_goal, epsilon=0.2, easy_goal_thold=easy_goal_thold)
 
         self._sample_goal() # Initialize goal
 
@@ -273,13 +289,13 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
     # ============================================================
     def _sample_goal(self):
         if self.training_phase == 1:
-            self.goal_xy = self.mid_goals[0]
-            self.goal_sample_mode = "fixed easy goal"
+            self.goal_xy = random.choice(self.discrete_goals)
+            self.goal_sample_mode = "random goals"
         elif self.training_phase == 2:
-            self.goal_xy = self.mid_goals[0]
+            self.goal_xy = self.hard_goals[0]
             self.goal_sample_mode = "fixed easy goal"
         elif self.training_phase == 3:
-            self.goal_xy = self.mid_goals[0]
+            self.goal_xy = random.choice([self.mid_goals + self.hard_goals])
             self.goal_sample_mode = "fixed hard goal"
         else:
             self.goal_sample_mode = "curriculum smart"
@@ -533,13 +549,13 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
 
         collision_raw = self.compute_weighted_obstacle_reward()
         if self.training_phase == 1:
-            r_collision_avoid = 0.0
+            r_collision_avoid = numpy.clip(self.w_collision_ph1 * collision_raw, -self.collision_clip, self.collision_clip)
         elif self.training_phase == 2:
-            r_collision_avoid = numpy.clip(self.w_collision_ph2 * collision_raw, -0.5, 0.0)
+            r_collision_avoid = numpy.clip(self.w_collision_ph2 * collision_raw, -self.collision_clip, self.collision_clip)
         elif self.training_phase == 3:
-            r_collision_avoid = numpy.clip(self.w_collision_ph3 * collision_raw, -0.25, 0.0)
+            r_collision_avoid = numpy.clip(self.w_collision_ph3 * collision_raw, -self.collision_clip, self.collision_clip)
         else:
-            r_collision_avoid = numpy.clip(self.w_collision_ph4 * collision_raw, -0.1, 0.0)
+            r_collision_avoid = numpy.clip(self.w_collision_ph4 * collision_raw, -self.collision_clip, self.collision_clip)
 
         # C. Yaw reward
         yaw_raw = math.cos(self.goal_angle)     # cos(goal_angle) gives +1 facing goal, -1 facing away
@@ -563,7 +579,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
                 r_terminal = self.terminal_timeout
             else:
                 # Se done è True ma non è goal o timeout, è una collisione
-                r_terminal = self.terminal_crash if self.training_phase >= 2 else 0.0
+                r_terminal = self.terminal_crash
 
         # E. Time Rewards
         #r_cumm_time = self.r_time * self.steps

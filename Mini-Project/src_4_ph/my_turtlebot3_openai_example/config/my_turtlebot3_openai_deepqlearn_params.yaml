@@ -18,7 +18,7 @@ turtlebot3: #namespace
     use_duelingDQN: 1
 
     # PHASE 1
-    max_step: 400
+    max_step: 350
     epsilon_end: 0.2
     learning_starts: 4000
     n_episodes: 1000
@@ -26,7 +26,7 @@ turtlebot3: #namespace
     lr: 1e-4
 
     # PHASE 2
-    #max_step: 450
+    #max_step: 400
     #epsilon_end: 0.15
     #learning_starts: 2000
     #n_episodes: 1000
@@ -34,8 +34,8 @@ turtlebot3: #namespace
     #lr: 1e-4
 
     # PHASE 3
-    #max_step: 700
-    #epsilon_end: 0.2
+    #max_step: 600
+    #epsilon_end: 0.1
     #learning_starts: 1500
     #n_episodes: 1500
     #epsilon_decay: 8000
@@ -43,7 +43,7 @@ turtlebot3: #namespace
 
     # PHASE 4
     #max_step: 800
-    #epsilon_end: 0.1
+    #epsilon_end: 0.05
     #learning_starts: 1500
     #n_episodes: 4000
     #epsilon_decay: 10000

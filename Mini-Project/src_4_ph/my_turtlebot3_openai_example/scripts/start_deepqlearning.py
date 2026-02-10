@@ -302,7 +302,7 @@ if __name__ == '__main__':
 
     # Get number of actions from gym action space
     n_actions = env.action_space.n
-    n_observations = rospy.get_param("/turtlebot3/new_ranges") + 2
+    n_observations = rospy.get_param("/turtlebot3/new_ranges") + 3
 
     use_duelingDQN = rospy.get_param("/turtlebot3/use_duelingDQN", 0)
 
