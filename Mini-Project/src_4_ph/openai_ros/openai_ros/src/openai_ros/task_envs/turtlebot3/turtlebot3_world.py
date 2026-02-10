@@ -379,11 +379,17 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         dist = self._distance_to_goal(x, y)
         heading = self._heading_to_goal(x, y, yaw)
         self.goal_angle = heading
+        self.goal_dist = dist
 
-        dist_norm = dist / (self.max_goal_distance + 1e-8)              # scegli 10.0 o un valore coerente col tuo mondo
-        heading_norm = heading / math.pi     # now is in [-1, 1]
+        dist_norm = dist / (self.max_goal_distance + 1e-8)
 
-        obs = list(discretized_observations) + [dist_norm, heading_norm]
+        sin_heading = math.sin(heading)
+        cos_heading = math.cos(heading)
+
+        #heading_norm = heading / math.pi     # now is in [-1, 1]
+
+        #obs = list(discretized_observations) + [dist_norm, heading_norm]
+        obs = list(discretized_observations) + [dist_norm, sin_heading, cos_heading]
 
         print("Observations==>" + str(obs))
         rospy.logdebug("Observations==>" + str(obs))
@@ -500,8 +506,10 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
 
     def _compute_reward(self, observations, done):
         # --- 1. Stato e Distanze ---
-        x, y, _ = self._get_robot_pose()
-        dist = self._distance_to_goal(x, y)
+        #x, y, _ = self._get_robot_pose()
+        #dist = self._distance_to_goal(x, y)
+
+        dist = self.goal_dist
 
         if self.prev_dist is None:
             self.prev_dist = dist
@@ -512,7 +520,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         # Se diff > 0 il robot si è avvicinato, se < 0 si è allontanato
         diff = self.prev_dist - dist
         #r_progress = self.w_progress * diff
-        r_progress = self.w_progress * numpy.clip(diff, -self.progress_clip, self.progress_clip)
+        r_progress = numpy.clip(self.w_progress * diff, -self.progress_clip, self.progress_clip)
 
         # B. Safety / Collision Avoidance
         # Calcoliamo la distanza minima dagli ostacoli (min_scan)
@@ -534,7 +542,8 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
             r_collision_avoid = numpy.clip(self.w_collision_ph4 * collision_raw, -0.1, 0.0)
 
         # C. Yaw reward
-        yaw_raw  = (1 - (2 * (abs(self.goal_angle) / math.pi)))
+        yaw_raw = math.cos(self.goal_angle)     # cos(goal_angle) gives +1 facing goal, -1 facing away
+        #yaw_raw  = (1 - (2 * (abs(self.goal_angle) / math.pi)))
 
         if self.training_phase == 1:
             yaw_reward = self.w_yaw_ph1 * yaw_raw

@@ -5,41 +5,46 @@ turtlebot3: #namespace
     running_step: 0.04 # amount of time the control will be executed
     pos_step: 0.016     # increment in position for each command
     
-    
     #dqn parameters 
     gamma: 0.99
     epsilon_start: 0.9
     
     target_update: 10
     batch_size: 64
-    lr: 1e-4
     optimizer: "adam"
 
-    max_step: 800
     running_step: 0.06 # Time for each step
 
-    use_duelingDQN: 0
+    use_duelingDQN: 1
 
     # PHASE 1
+    max_step: 400
     epsilon_end: 0.2
     learning_starts: 4000
-    n_episodes: 800
-    epsilon_decay: 12000
+    n_episodes: 1000
+    epsilon_decay: 20000
+    lr: 1e-4
 
     # PHASE 2
+    #max_step: 450
     #epsilon_end: 0.15
-    #learning_starts: 1500
-    #n_episodes: 800
-    #epsilon_decay: 90000
+    #learning_starts: 2000
+    #n_episodes: 1000
+    #epsilon_decay: 12000
+    #lr: 1e-4
 
     # PHASE 3
+    #max_step: 700
     #epsilon_end: 0.2
     #learning_starts: 1500
     #n_episodes: 1500
     #epsilon_decay: 8000
+    #lr: 5e-5
 
     # PHASE 4
-    #epsilon_end: 0.25
+    #max_step: 800
+    #epsilon_end: 0.1
     #learning_starts: 1500
     #n_episodes: 4000
     #epsilon_decay: 10000
+    #lr: 1e-5

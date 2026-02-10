@@ -2,9 +2,9 @@ turtlebot3: #namespace
 
     n_actions: 3 # We have 3 actions, Forwards,TurnLeft,TurnRight
 
-    linear_forward_speed: 0.5 # Spwwed for ging fowards
+    linear_forward_speed: 0.2 # Spwwed for ging fowards
     linear_turn_speed: 0.05 # Lienare speed when turning
-    angular_speed: 0.3 # Angular speed when turning Left or Right
+    angular_speed: 0.4 # Angular speed when turning Left or Right
     init_linear_forward_speed: 0.0 # Initial linear speed in which we start each episode
     init_linear_turn_speed: 0.0 # Initial angular speed in shich we start each episode
     
@@ -13,7 +13,7 @@ turtlebot3: #namespace
     max_laser_value: 6.0 # Value considered Ok, no wall
     min_laser_value: 0.0 # Value considered there is an obstacle or crashed
 
-    max_goal_distance: 6
+    max_goal_distance: 4.0
     easy_goal_thold: 0.75 #75%
     
     # New parameters for goal sampling
@@ -21,23 +21,23 @@ turtlebot3: #namespace
     max_steps_per_episode: 800 # Maximum number of steps per episode
 
     # Rewards
-    progress_rwd : 5.0       # Incentiva l'avvicinamento al goal
-    progress_clip: 0.075
+    progress_rwd : 20.0       # Incentiva l'avvicinamento al goal
+    progress_clip: 10.0
 
-    collision_rwd_ph1 : 0.0     # Penalità per la vicinanza agli ostacoli
+    collision_rwd_ph1 : 1.0     # Penalità per la vicinanza agli ostacoli
     collision_rwd_ph2 : 1.0     
-    collision_rwd_ph3 : 0.5     
-    collision_rwd_ph4 : 0.5     
+    collision_rwd_ph3 : 1.0     
+    collision_rwd_ph4 : 1.0     
 
-    yaw_rwd_ph1 : 0.1
-    yaw_rwd_ph2 : 0.05
-    yaw_rwd_ph3 : 0.02
-    yaw_rwd_ph4 : 0.01
+    yaw_rwd_ph1 : 2.0
+    yaw_rwd_ph2 : 2.0
+    yaw_rwd_ph3 : 0.5
+    yaw_rwd_ph4 : 0.5
             
-    terminal_goal_rwd: 2.0
-    terminal_crash_rwd: -2.0
-    terminal_timeout_rwd: -0.5
+    terminal_goal_rwd: 200.0
+    terminal_crash_rwd: -200.0
+    terminal_timeout_rwd: -50.0
 
-    time_rwd : -0.01 # Penalità temporale costante per ogni step
+    time_rwd : -0.1 # Penalità temporale costante per ogni step
 
     training_phase: 1   # 1, 2, 3, 4
