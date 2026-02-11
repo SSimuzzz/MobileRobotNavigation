@@ -1,0 +1,12 @@
+tolto r_cumm_time = self.r_time * self.steps
+messo r_cumm_time = self.r_time
+
+visto che aumenta già per time moltiplicare anche per step forse dava un reward negativo troppo alto
+
+abbassato yaw a 2
+
+resto same as 11
+
+-----------------------------------
+
+sembra che vada in giro molto più lentamente

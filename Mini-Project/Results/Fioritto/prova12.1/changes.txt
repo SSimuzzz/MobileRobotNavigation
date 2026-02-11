@@ -1,0 +1,11 @@
+Modificato calcolo diff il seguente:
+
+# Non punisce allontanamento dal goal ma premia avvicvinamento
+        
+        diff = self.prev_dist - dist
+        if diff > 0:
+            r_progress = self.w_progress * diff
+        else:
+            r_progress = 0.0
+
+Abbassato collision reward da 1.0 a 0.3 (sembrava molto dominante nel calcolo del reward totale, mentre altri termini erano a 1/-1 questo era quasi a -100)

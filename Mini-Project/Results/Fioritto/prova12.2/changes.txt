@@ -1,0 +1,5 @@
+inserito un altro stage di training per forzare medium goal
+
+inserito r_easy_bias nel calcolo del reward per penalizzare la scelta di easy goal nel secondo stage
+
+diminuito ulteriormente reward collision_rwd (da 0.3 a 0.18)
