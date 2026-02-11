@@ -1,0 +1,2 @@
+new_ranges: 18
+max_goal_distance: 3.0
