@@ -1,0 +1,9 @@
+diminuito ancora il reward avvicinamento ad ostacolo (da 0.18 a 0.08)
+
+tolto il force medium goal che tanto non funzionava
+
+tenuto il 30% easy/medium
+
+training lungo 4000
+
+risultati non degni di nota.
