@@ -78,7 +78,7 @@ class GoalSamplingCurriculum:
         if random.random() < self.epsilon or not valid_goals:
             return random.choice(self.all_goals)
         
-        return random.choice(list(set(self.valid_goals)))
+        return random.choice(list(set(valid_goals)))
 
 
 class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
@@ -160,7 +160,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         # distance in meters: [0, max_goal_distance]
         self.max_goal_distance = rospy.get_param("/turtlebot3/max_goal_distance", 10.0)
         self.progress_clip = rospy.get_param("/turtlebot3/progress_clip", 10.0)
-        self.collision_clip = rospy.get_param("/turtlebot3/collision_clip", 10.0)
+        self.collision_clip = rospy.get_param("/turtlebot3/collision_clip", 15.0)
 
         # Aggiungo 2 feature: dist_norm in [0, 1] (se dividi per 10 e clampi) e heading_norm in [-1, 1]
         low_extra = numpy.array([0.0, -1.0], dtype=numpy.float32)
@@ -295,7 +295,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
             self.goal_xy = self.hard_goals[0]
             self.goal_sample_mode = "fixed easy goal"
         elif self.training_phase == 3:
-            self.goal_xy = random.choice([self.mid_goals + self.hard_goals])
+            self.goal_xy = random.choice(self.mid_goals + self.hard_goals)
             self.goal_sample_mode = "fixed hard goal"
         else:
             self.goal_sample_mode = "curriculum smart"
