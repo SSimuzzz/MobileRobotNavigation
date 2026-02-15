@@ -22,7 +22,8 @@ turtlebot3: #namespace
 
     # Rewards
     progress_rwd : 20.0       # Incentiva l'avvicinamento al goal
-    progress_clip: 10.0
+    progress_clip: 15.0
+    collision_clip: 15.0
 
     collision_rwd_ph1 : 1.0     # Penalità per la vicinanza agli ostacoli
     collision_rwd_ph2 : 1.0     

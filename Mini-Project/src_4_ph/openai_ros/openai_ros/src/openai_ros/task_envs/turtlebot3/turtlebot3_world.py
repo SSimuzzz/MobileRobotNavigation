@@ -191,7 +191,6 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         self.w_collision_ph2 = rospy.get_param("/turtlebot3/collision_rwd_ph2", 2.0)
         self.w_collision_ph3 = rospy.get_param("/turtlebot3/collision_rwd_ph3", 2.0)
         self.w_collision_ph4 = rospy.get_param("/turtlebot3/collision_rwd_ph4", 2.0)
-        self.w_collision_ph4 = rospy.get_param("/turtlebot3/collision_rwd_ph4", 2.0)
         
         self.w_yaw_ph1 = rospy.get_param("/turtlebot3/yaw_rwd_ph1", 1.0)
         self.w_yaw_ph2 = rospy.get_param("/turtlebot3/yaw_rwd_ph2", 1.0)
@@ -218,7 +217,7 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
             self.final_goal
         )
 
-        self.curriculum = GoalSamplingCurriculum(all_goals=self.discrete_goals, final_goal = self.final_goal, epsilon=0.2, easy_goal_thold=easy_goal_thold)
+        self.curriculum = GoalSamplingCurriculum(all_goals=self.discrete_goals, final_goal = self.final_goal[0], epsilon=0.2, easy_goal_thold=easy_goal_thold)
 
         self._sample_goal() # Initialize goal
 
@@ -663,7 +662,6 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
         return discretized_ranges
     
     def scan_sub_callback(self, discretized_ranges):
-        #self.scan_ranges = []
         self.front_ranges = []
         self.front_angles = []
 
@@ -681,14 +679,9 @@ class TurtleBot3WorldEnv(turtlebot3_env.TurtleBot3Env):
             elif numpy.isnan(distance):
                 distance = 0.0
 
-            #self.scan_ranges.append(distance)
-
             if (0 <= angle <= math.pi/2) or (3*math.pi/2 <= angle <= 2*math.pi):
                 self.front_ranges.append(distance)
                 self.front_angles.append(angle)
-
-        #self.min_obstacle_distance = min(self.scan_ranges)
-        #self.front_min_obstacle_distance = min(self.front_ranges) if self.front_ranges else 10.0       
 
 
     def get_vector_magnitude(self, vector):
