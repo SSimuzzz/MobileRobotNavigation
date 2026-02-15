@@ -20,7 +20,7 @@ turtlebot3: #namespace
     running_step: 0.06 # Time for each step
 
 
-    use_duelingDQN: 0
+    use_duelingDQN: 1
 
     
 

@@ -67,27 +67,34 @@ class DuelingDQN(nn.Module):
 
         # Shared feature extractor
         self.feature = nn.Sequential(
-            nn.Linear(inputs, 512),
+            nn.Linear(inputs, 256),
             nn.ReLU(),
-            nn.Linear(512, 256),
-            nn.ReLU(),
-            nn.Linear(256, 128),
+            nn.Linear(256, 256),
             nn.ReLU(),
         )
 
         # Value stream V(s)
         self.value = nn.Sequential(
-            nn.Linear(128, 64),
+            nn.Linear(256, 128),
             nn.ReLU(),
-            nn.Linear(64, 1)
+            nn.Linear(128, 1)
         )
 
         # Advantage stream A(s,a)
         self.advantage = nn.Sequential(
-            nn.Linear(128, 64),
+            nn.Linear(256, 128),
             nn.ReLU(),
-            nn.Linear(64, outputs)
+            nn.Linear(128, outputs)
         )
+
+        # He (Kaiming) initialization for ReLU networks
+        self.apply(self._init_weights)
+    
+    @staticmethod
+    def _init_weights(module):
+        if isinstance(module, nn.Linear):
+            nn.init.kaiming_normal_(module.weight, nonlinearity='relu')
+            nn.init.constant_(module.bias, 0)
 
     def forward(self, x):
         x = x.to(device)
