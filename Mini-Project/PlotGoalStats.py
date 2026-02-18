@@ -9,25 +9,34 @@ CSV_NAME = "metrics.csv"
 csv_path = os.path.join(RESULTS_DIR, CSV_NAME)
 df = pd.read_csv(csv_path)
 
+# === MAPPING COORDINATE -> LABEL ===
+goal_mapping = {
+    (-0.7, -0.5): "easy",
+    (0.0, 0.5): "medium",
+    (1.0, -0.5): "hard",
+    (1.7, 0.5): "final"
+}
+
+# Creiamo una colonna con la label del goal
+df['goal_label'] = list(zip(df['goal_x'], df['goal_y']))
+df['goal_label'] = df['goal_label'].map(goal_mapping)
+
+
 # Assicuriamoci che success sia numerico (0/1)
 df['success'] = df['success'].astype(int)
 
-# === GROUP BY GOAL COORDINATES ===
-grouped = df.groupby(['goal_x', 'goal_y'])
+# === GROUP BY GOAL LABEL ===
+grouped = df.groupby('goal_label')
 
-# Calcolo statistiche
 stats = grouped.agg(
     total_episodes=('episode', 'count'),
     success_count=('success', 'sum'),
-    success_rate=('success', 'mean'),   # media di 0/1 = success rate
+    success_rate=('success', 'mean'),
     avg_steps=('steps', 'mean')
 ).reset_index()
 
-# Creo una label stringa per ogni goal
-stats['goal_label'] = stats.apply(
-    lambda row: f"({row['goal_x']}, {row['goal_y']})",
-    axis=1
-)
+order = ["easy", "medium", "hard", "final"]
+stats = stats.set_index('goal_label').loc[order].reset_index()
 
 # ===============================
 # === GRAFICO 1: SUCCESS RATE ===
@@ -35,7 +44,7 @@ stats['goal_label'] = stats.apply(
 plt.figure()
 plt.bar(stats['goal_label'], stats['success_rate'])
 plt.xticks(rotation=45)
-plt.xlabel("Goal (x, y)")
+plt.xlabel("Goal")
 plt.ylabel("Success Rate")
 plt.title("Success Rate per Goal")
 plt.tight_layout()
@@ -50,7 +59,7 @@ plt.close()
 plt.figure()
 plt.bar(stats['goal_label'], stats['avg_steps'])
 plt.xticks(rotation=45)
-plt.xlabel("Goal (x, y)")
+plt.xlabel("Goal")
 plt.ylabel("Average Steps")
 plt.title("Average Steps per Goal")
 plt.tight_layout()
