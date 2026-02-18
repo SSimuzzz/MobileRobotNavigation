@@ -1,0 +1,19 @@
+Forse non va vicino a medium goal perché maze troppo stretto?
+
+da reward = - (1.0 + 4.0 * weighted_decay) a reward = - weighted_decay
+
+reward se ti avvicini con yaw giusto
+
+Da yaw_reward = self.w_yaw * (1 - (2 * abs(self.goal_angle) / math.pi)) a yaw_reward = self.w_yaw * (math.cos(self.goal_angle))
+
+abbassato ANCORA collision reward (0.02)
+
+modificato velocità
+
+linear_forward_speed: 0.2
+linear_turn_speed: 0.03
+angular_speed: 0.5
+
+easy 70
+
+easy medium 140

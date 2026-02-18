@@ -1,0 +1,22 @@
+MODIFICHE CON CODICE NICOLA
+
+da r_progress = self.w_progress * diff a r_progress = numpy.clip(self.w_progress * diff, -10.0, 10.0) per clipping, limita reward
+
+aggiunto if dist < (self.goal_threshold * 2.0):
+    scale = max(0.2, dist / (self.goal_threshold * 2.0))
+    r_collision_avoid *= scale
+
+per diminuire penalità vicino al goal (dovrebbe incoraggiare avvicinamento)
+
+aggiunto r_turn = 0.0
+if self.last_action in ["TURN_LEFT", "TURN_RIGHT"]:
+    r_turn = -0.05
+
+per penalizzare leggermente azione di turn (NON SO SE SI APPLICA AL NOSTRO, IL TURN DEVI FARLO CON IL MAZE)
+
+
+
+
+Viste le modifiche ho anche rialzato il collision reward visto che vado a clipparlo con la distanza dal goal (0.6)
+
+yaw reward da 2.0 a 3.0

@@ -1,0 +1,9 @@
+forward speed abbassato a 0.2
+angular speed 0.90
+rime rwde da 0,02 a 0,05
+
+da reward = - (1.0 + 4.0 * weighted_decay) a reward = - weighted_decay
+
+TOLTO r_progress dal calcolo finale del reward
+
+yaw reward ora è yaw_reward = 1 - (2 * abs(self.goal_angle) / math.pi)

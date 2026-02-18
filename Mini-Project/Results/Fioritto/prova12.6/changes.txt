@@ -1,0 +1,3 @@
+reverted modifiche su reward = - (1.0 + 4.0 * weighted_decay)
+reverted modifiche su velocità
+
