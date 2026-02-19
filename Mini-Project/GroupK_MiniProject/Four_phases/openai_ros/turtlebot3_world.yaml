@@ -1,0 +1,45 @@
+turtlebot3: #namespace
+
+    n_actions: 3                # We have 3 actions, Forwards,TurnLeft,TurnRight
+
+    linear_forward_speed: 0.2   # Spwwed for ging fowards
+    linear_turn_speed: 0.05     # Lienare speed when turning
+    angular_speed: 0.4          # Angular speed when turning Left or Right
+    init_linear_forward_speed: 0.0 # Initial linear speed in which we start each episode
+    init_linear_turn_speed: 0.0 # Initial angular speed in shich we start each episode
+    
+    new_ranges: 24              # Number of laser readings we want to use
+    min_range: 0.17             # Minimum meters below wich we consider we have crashed
+    max_laser_value: 6.0        # Value considered Ok, no wall
+    min_laser_value: 0.0        # Value considered there is an obstacle or crashed
+
+    max_goal_distance: 4.0
+    easy_goal_thold: 0.75       # 75%
+    
+    # New parameters for goal sampling
+    goal_threshold: 0.25        # Distance to goal to consider we have reached it
+    max_steps_per_episode: 800  # Maximum number of steps per episode
+
+    # Rewards
+    progress_rwd : 20.0         # Encourages getting closer to the goal
+    progress_clip: 15.0
+    collision_clip: 15.0
+
+    collision_rwd_ph1 : 1.0     # Collision avoidance penalty
+    collision_rwd_ph2 : 1.0     
+    collision_rwd_ph3 : 1.0     
+    collision_rwd_ph4 : 1.0     
+
+    yaw_rwd_ph1 : 2.0           # Reward for aiming to the goal
+    yaw_rwd_ph2 : 2.0
+    yaw_rwd_ph3 : 0.5
+    yaw_rwd_ph4 : 0.5
+    
+    # Terminal rewards
+    terminal_goal_rwd: 200.0
+    terminal_crash_rwd: -200.0
+    terminal_timeout_rwd: -50.0
+
+    time_rwd : -0.1             # Temporal penalty for each step
+
+    training_phase: 1           # Training phase: 1, 2, 3, 4

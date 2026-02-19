@@ -1,0 +1,50 @@
+turtlebot3: #namespace
+
+    task_and_robot_environment_name: 'TurtleBot3World-v0'
+    ros_ws_abspath: "/home/ubuntu/simulation_ws"
+    running_step: 0.04 # amount of time the control will be executed
+    pos_step: 0.016     # increment in position for each command
+    
+    #dqn parameters 
+    gamma: 0.99
+    epsilon_start: 0.9
+    
+    target_update: 10
+    batch_size: 64
+    optimizer: "adam"
+
+    running_step: 0.06 # Time for each step
+
+    use_duelingDQN: 1
+
+    # PHASE 1
+    max_step: 350
+    epsilon_end: 0.2
+    learning_starts: 4000
+    n_episodes: 1000
+    epsilon_decay: 20000
+    lr: 1e-4
+
+    # PHASE 2
+    #max_step: 400
+    #epsilon_end: 0.15
+    #learning_starts: 2000
+    #n_episodes: 1000
+    #epsilon_decay: 12000
+    #lr: 1e-4
+
+    # PHASE 3
+    #max_step: 600
+    #epsilon_end: 0.1
+    #learning_starts: 1500
+    #n_episodes: 1500
+    #epsilon_decay: 8000
+    #lr: 5e-5
+
+    # PHASE 4
+    #max_step: 800
+    #epsilon_end: 0.05
+    #learning_starts: 1500
+    #n_episodes: 4000
+    #epsilon_decay: 10000
+    #lr: 1e-5
