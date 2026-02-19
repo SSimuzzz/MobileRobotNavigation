@@ -1,0 +1,16 @@
+To kill ros processes without having to restart the docker container:
+open another shell
+docker ps 			--> trova il nome del container
+docker exec -it <nome> "/bin/bash"
+pkill -f gazebo
+pkill -f roslaunch
+
+Robot starting position is (-2, -0.5). Where to change it?
+
+Would be very nice to visualize current sampled goal on world map. Have no idea how.
+
+In File modificati folder there are all the files modified for running in the docker. You have to replace the corresponding ones in the running container with these.
+
+After training is completed, a file data about the training process will be saved in my_turtlebot3_openai_example/training_results/metrics.csv
+
+Place plot_metrics3.py in my_turtlebot3_openai_example/scripts/ and run it. It will generate plots in training_results/ using data from metrics.csv

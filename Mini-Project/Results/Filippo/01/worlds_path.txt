@@ -1,0 +1,3 @@
+/home/ubuntu/simulation_ws/src/turtlebot3/turtlebot3_simulations/turtlebot3_gazebo/models/turtlebot3.world
+
+sed -i 's/\r$//' nomefile.txt

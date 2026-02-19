@@ -59,7 +59,8 @@ RUN chmod +x start_qlearning_v2.py
 # install Python dependencies
 RUN python3 -m pip install gym==0.25.0
 RUN python3 -m pip install GitPython
-RUN python3 -m pip install torch
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cu121 torch
 
 WORKDIR /home/ubuntu/simulation_ws
 RUN /bin/bash -c "source /opt/ros/noetic/setup.bash; catkin init; catkin build; source devel/setup.bash"
@@ -67,4 +68,3 @@ RUN echo "source /home/ubuntu/simulation_ws/devel/setup.bash" >> /home/ubuntu/.b
 RUN echo "export TURTLEBOT3_MODEL=burger" >> /home/ubuntu/.bashrc
 
 ENTRYPOINT ["/bin/bash"]
-
