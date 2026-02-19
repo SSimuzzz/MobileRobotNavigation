@@ -1,0 +1,73 @@
+{
+  "rows": 2500,
+  "episodes_max": 2500,
+  "window_for_rolling_plots": 100,
+  "columns": [
+    "episode",
+    "reward",
+    "success",
+    "collision",
+    "steps",
+    "goal_x",
+    "goal_y",
+    "dist",
+    "min_scan",
+    "r_progress",
+    "r_time",
+    "r_collision_avoid",
+    "r_yaw",
+    "r_terminal",
+    "epsilon",
+    "reward_components_sum",
+    "reward_diff"
+  ],
+  "reward": {
+    "mean": -163.3730512082394,
+    "median": -256.45400279039154,
+    "std": 282.5861071640436,
+    "min": -1099.2647806045584,
+    "max": 431.3194610324467
+  },
+  "success": {
+    "mean": 0.204,
+    "median": 0.0,
+    "std": 0.4030495994190262,
+    "min": 0.0,
+    "max": 1.0
+  },
+  "collision": {
+    "mean": 0.796,
+    "median": 1.0,
+    "std": 0.4030495994190262,
+    "min": 0.0,
+    "max": 1.0
+  },
+  "steps": {
+    "mean": 23.9356,
+    "median": 15.0,
+    "std": 21.91020482492548,
+    "min": 8.0,
+    "max": 235.0
+  },
+  "dist": {
+    "mean": 1.0639134258159193,
+    "median": 0.858482682938219,
+    "std": 0.759809431994758,
+    "min": 0.1143006923626149,
+    "max": 4.290645764134335
+  },
+  "min_scan": {
+    "mean": 0.192356,
+    "median": 0.17,
+    "std": 0.07760578797571065,
+    "min": 0.12,
+    "max": 0.47
+  },
+  "epsilon": {
+    "mean": 0.16770702648819655,
+    "median": 0.06970851402592285,
+    "std": 0.19466303989400618,
+    "min": 0.0504797387229269,
+    "max": 0.8968184690987954
+  }
+}
